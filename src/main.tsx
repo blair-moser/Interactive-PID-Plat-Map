@@ -472,7 +472,7 @@ function App() {
 
                 <div className="detail-grid">
                   <section>
-                    <h3>Plat map image</h3>
+                    <h3>Plat Map Image</h3>
                     {activeDot.platImage ? (
                       <img src={resolveImagePath(activeDot.platImage)} alt={`${activeDot.projectName} plat map`} />
                     ) : (
