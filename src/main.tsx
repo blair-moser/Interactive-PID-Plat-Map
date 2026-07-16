@@ -16,6 +16,7 @@ type MapDot = {
 };
 
 const STORAGE_KEY = 'pid-plat-map-dots';
+const DEFAULT_MAP_IMAGE = `${import.meta.env.BASE_URL}pid-no-1-map.png`;
 
 const initialDots: MapDot[] = [
   {
@@ -26,7 +27,7 @@ const initialDots: MapDot[] = [
     x: 44,
     y: 34,
     color: '#3b6ea8',
-    platImage: '/pid-no-1-map.png',
+    platImage: DEFAULT_MAP_IMAGE,
     siteUrl: '',
   },
   {
@@ -37,7 +38,7 @@ const initialDots: MapDot[] = [
     x: 58,
     y: 46,
     color: '#8073ac',
-    platImage: '/pid-no-1-map.png',
+    platImage: DEFAULT_MAP_IMAGE,
     siteUrl: '',
   },
   {
@@ -48,7 +49,7 @@ const initialDots: MapDot[] = [
     x: 36,
     y: 58,
     color: '#66a61e',
-    platImage: '/pid-no-1-map.png',
+    platImage: DEFAULT_MAP_IMAGE,
     siteUrl: '',
   },
 ];
@@ -58,7 +59,7 @@ function App() {
   const mapRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
   const [dots, setDots] = useState<MapDot[]>(loadSavedDots);
-  const [selectedDotId, setSelectedDotId] = useState(dots[0]?.id ?? initialDots[0].id);
+  const [selectedDotId, setSelectedDotId] = useState<string | null>(null);
   const [activeDotId, setActiveDotId] = useState<string | null>(null);
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
     window.location.hash === '#client' ? 'client' : 'editor',
@@ -67,7 +68,7 @@ function App() {
   const [isPanning, setIsPanning] = useState(false);
   const [saveMessage, setSaveMessage] = useState('Loaded');
 
-  const selectedDot = dots.find((dot) => dot.id === selectedDotId) ?? dots[0];
+  const selectedDot = dots.find((dot) => dot.id === selectedDotId) ?? null;
   const activeDot = dots.find((dot) => dot.id === activeDotId) ?? null;
   const isClientView = pageMode === 'client';
 
@@ -77,8 +78,8 @@ function App() {
   );
 
   useEffect(() => {
-    if (!dots.some((dot) => dot.id === selectedDotId)) {
-      setSelectedDotId(dots[0]?.id ?? initialDots[0].id);
+    if (selectedDotId && !dots.some((dot) => dot.id === selectedDotId)) {
+      setSelectedDotId(null);
     }
   }, [dots, selectedDotId]);
 
@@ -262,87 +263,7 @@ function App() {
 
       <section className={`layout ${isClientView ? 'client-layout' : ''}`}>
         {!isClientView && (
-        <aside className="sidebar">
-          {selectedDot && (
-            <div className="panel selected-panel">
-              <div className="selected-heading">
-                <h2>{selectedDot.projectName}</h2>
-              </div>
-
-              <div className="project-fields">
-                <label>
-                  Parcel number
-                  <input
-                    type="text"
-                    value={selectedDot.parcelNumber}
-                    onChange={(event) => updateDot(selectedDot.id, { parcelNumber: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Project name
-                  <input
-                    type="text"
-                    value={selectedDot.projectName}
-                    onChange={(event) => updateDot(selectedDot.id, { projectName: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Short hover details
-                  <textarea
-                    value={selectedDot.shortDetails}
-                    onChange={(event) => updateDot(selectedDot.id, { shortDetails: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Dot color
-                  <input
-                    type="color"
-                    value={selectedDot.color}
-                    onChange={(event) => updateDot(selectedDot.id, { color: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Detail plat map image path or URL
-                  <input
-                    type="text"
-                    value={selectedDot.platImage}
-                    placeholder="/my-plat-image.png"
-                    onChange={(event) => updateDot(selectedDot.id, { platImage: event.target.value })}
-                  />
-                </label>
-                <label>
-                  Linked site URL
-                  <input
-                    type="url"
-                    value={selectedDot.siteUrl}
-                    placeholder="https://example.com"
-                    onChange={(event) => updateDot(selectedDot.id, { siteUrl: event.target.value })}
-                  />
-                </label>
-              </div>
-
-              {!isClientView && (
-                <div className="shape-editor">
-                  <div className="shape-actions">
-                    <button type="button" onClick={addDot}>
-                      <Plus size={15} />
-                      Add dot
-                    </button>
-                    <button type="button" onClick={duplicateSelectedDot}>
-                      <Copy size={15} />
-                      Duplicate selected
-                    </button>
-                    <button type="button" onClick={removeSelectedDot} disabled={dots.length <= 1}>
-                      <Trash2 size={15} />
-                      Remove selected
-                    </button>
-                  </div>
-                  <p>Drag a dot on the map to position it. Click a dot to open its detail overlay.</p>
-                </div>
-              )}
-            </div>
-          )}
-
+        <aside className="sidebar dots-sidebar">
           <div className="panel">
             <h2>Dots</h2>
             <div className="legend">
@@ -442,7 +363,7 @@ function App() {
               className={`map-frame ${!isClientView ? 'is-calibrating' : ''}`}
               style={{ '--zoom': zoom } as React.CSSProperties}
             >
-              <img src="/pid-no-1-map.png" alt="PID No. 1 plat map page 2" draggable={false} />
+              <img src={DEFAULT_MAP_IMAGE} alt="PID No. 1 plat map page 2" draggable={false} />
               <div className="dot-layer">
                 {dots.map((dot) => (
                   <button
@@ -491,7 +412,7 @@ function App() {
                   <section>
                     <h3>Plat map image</h3>
                     {activeDot.platImage ? (
-                      <img src={activeDot.platImage} alt={`${activeDot.projectName} plat map`} />
+                      <img src={resolveImagePath(activeDot.platImage)} alt={`${activeDot.projectName} plat map`} />
                     ) : (
                       <div className="empty-detail">No detail plat image is available for this project yet.</div>
                     )}
@@ -511,6 +432,97 @@ function App() {
             </div>
           )}
         </section>
+
+        {!isClientView && (
+          <aside className="sidebar editor-sidebar">
+            {selectedDot ? (
+              <div className="panel selected-panel">
+                <div className="selected-heading">
+                  <h2>{selectedDot.projectName}</h2>
+                </div>
+
+                <div className="project-fields">
+                  <label>
+                    Parcel number
+                    <input
+                      type="text"
+                      value={selectedDot.parcelNumber}
+                      onChange={(event) => updateDot(selectedDot.id, { parcelNumber: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Project name
+                    <input
+                      type="text"
+                      value={selectedDot.projectName}
+                      onChange={(event) => updateDot(selectedDot.id, { projectName: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Short hover details
+                    <textarea
+                      value={selectedDot.shortDetails}
+                      onChange={(event) => updateDot(selectedDot.id, { shortDetails: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Dot color
+                    <input
+                      type="color"
+                      value={selectedDot.color}
+                      onChange={(event) => updateDot(selectedDot.id, { color: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Detail plat map image path or URL
+                    <input
+                      type="text"
+                      value={selectedDot.platImage}
+                      placeholder="my-plat-image.png"
+                      onChange={(event) => updateDot(selectedDot.id, { platImage: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Linked site URL
+                    <input
+                      type="url"
+                      value={selectedDot.siteUrl}
+                      placeholder="https://example.com"
+                      onChange={(event) => updateDot(selectedDot.id, { siteUrl: event.target.value })}
+                    />
+                  </label>
+                </div>
+
+                <div className="shape-editor">
+                  <div className="shape-actions">
+                    <button type="button" onClick={addDot}>
+                      <Plus size={15} />
+                      Add dot
+                    </button>
+                    <button type="button" onClick={duplicateSelectedDot}>
+                      <Copy size={15} />
+                      Duplicate selected
+                    </button>
+                    <button type="button" onClick={removeSelectedDot} disabled={dots.length <= 1}>
+                      <Trash2 size={15} />
+                      Remove selected
+                    </button>
+                  </div>
+                  <p>Drag a dot on the map to position it. Click a dot to open its detail overlay.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="panel empty-selection-panel">
+                <h2>No dot selected</h2>
+                <p>Select a dot from the map or the Dots list to edit its details.</p>
+                <button type="button" onClick={addDot}>
+                  <Plus size={15} />
+                  Add dot
+                </button>
+              </div>
+            )}
+          </aside>
+        )}
       </section>
     </main>
   );
@@ -529,6 +541,14 @@ function getPublicDetails(dot: MapDot) {
   ];
 
   return starterCopy.includes(detail) ? '' : detail;
+}
+
+function resolveImagePath(path: string) {
+  const trimmedPath = path.trim();
+  if (!trimmedPath) return '';
+  if (/^(https?:|data:|blob:)/i.test(trimmedPath)) return trimmedPath;
+  if (trimmedPath.startsWith(import.meta.env.BASE_URL)) return trimmedPath;
+  return `${import.meta.env.BASE_URL}${trimmedPath.replace(/^\/+/, '')}`;
 }
 
 function loadSavedDots() {
