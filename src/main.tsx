@@ -66,8 +66,8 @@ function App() {
   const mapViewportRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
-  const [dots, setDots] = useState<MapDot[]>(loadSavedDots);
-  const [canSaveDots, setCanSaveDots] = useState(hasBrowserDots);
+  const [dots, setDots] = useState<MapDot[]>(initialDots);
+  const [canSaveDots, setCanSaveDots] = useState(false);
   const [selectedDotId, setSelectedDotId] = useState<string | null>(null);
   const [activeDotId, setActiveDotId] = useState<string | null>(null);
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
@@ -93,32 +93,44 @@ function App() {
   }, [dots, selectedDotId]);
 
   useEffect(() => {
-    if (!canSaveDots) return;
+    if (!canSaveDots || isClientView) return;
     saveDots(dots);
     setSaveMessage(`Saved ${dots.length} dots at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
-  }, [canSaveDots, dots]);
+  }, [canSaveDots, dots, isClientView]);
 
   useEffect(() => {
-    if (canSaveDots) return;
+    let cancelled = false;
 
-    fetch(DOTS_FILE_PATH, { cache: 'no-store' })
-      .then((response) => {
-        if (!response.ok) throw new Error('dots.json could not be loaded');
-        return response.json();
-      })
-      .then((value) => {
-        if (isDotList(value)) {
-          setDots(value);
-          setSaveMessage(`Loaded ${value.length} dots from dots.json`);
-        }
+    if (!isClientView) {
+      const browserDots = loadBrowserDots();
+      if (browserDots) {
+        setDots(browserDots);
+        setCanSaveDots(true);
+        setSaveMessage(`Loaded ${browserDots.length} saved draft dots`);
+        return () => {
+          cancelled = true;
+        };
+      }
+    }
+
+    setCanSaveDots(false);
+    loadPublishedDots()
+      .then((publishedDots) => {
+        if (cancelled || !publishedDots) return;
+        setDots(publishedDots);
+        setSaveMessage(`Loaded ${publishedDots.length} dots from dots.json`);
       })
       .catch(() => {
-        setSaveMessage('Loaded starter dots');
+        if (!cancelled) setSaveMessage('Loaded starter dots');
       })
       .finally(() => {
-        setCanSaveDots(true);
+        if (!cancelled && !isClientView) setCanSaveDots(true);
       });
-  }, [canSaveDots]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isClientView]);
 
   useEffect(() => {
     function handleHashChange() {
@@ -623,16 +635,12 @@ function saveDots(dots: MapDot[]) {
   localStorage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(0, 50)));
 }
 
-function loadSavedDots() {
-  return loadBrowserDots() ?? initialDots;
-}
+async function loadPublishedDots() {
+  const response = await fetch(DOTS_FILE_PATH, { cache: 'no-store' });
+  if (!response.ok) return null;
 
-function hasBrowserDots() {
-  try {
-    return Boolean(loadBrowserDots());
-  } catch {
-    return false;
-  }
+  const parsed = await response.json();
+  return isDotList(parsed) ? parsed : null;
 }
 
 function loadBrowserDots() {
