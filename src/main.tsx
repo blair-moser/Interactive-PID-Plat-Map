@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Copy, ExternalLink, Plus, Trash2, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { Copy, Download, ExternalLink, Plus, Trash2, Upload, X, ZoomIn, ZoomOut } from 'lucide-react';
 import './styles.css';
 
 type MapDot = {
@@ -15,7 +15,14 @@ type MapDot = {
   siteUrl: string;
 };
 
+type DotBackup = {
+  version: 1;
+  savedAt: string;
+  dots: MapDot[];
+};
+
 const STORAGE_KEY = 'pid-plat-map-dots';
+const BACKUP_KEY = 'pid-plat-map-dots-backups';
 const DEFAULT_MAP_IMAGE = `${import.meta.env.BASE_URL}pid-no-1-map.png`;
 
 const initialDots: MapDot[] = [
@@ -57,6 +64,7 @@ const initialDots: MapDot[] = [
 function App() {
   const mapViewportRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
   const [dots, setDots] = useState<MapDot[]>(loadSavedDots);
   const [selectedDotId, setSelectedDotId] = useState<string | null>(null);
@@ -84,8 +92,8 @@ function App() {
   }, [dots, selectedDotId]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dots));
-    setSaveMessage(`Autosaved ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+    saveDots(dots);
+    setSaveMessage(`Saved ${dots.length} dots at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
   }, [dots]);
 
   useEffect(() => {
@@ -136,6 +144,43 @@ function App() {
     if (!selectedDot || dots.length <= 1) return;
     setDots((current) => current.filter((dot) => dot.id !== selectedDot.id));
     setActiveDotId((current) => (current === selectedDot.id ? null : current));
+  }
+
+  function exportDots() {
+    const backup = createBackup(dots);
+    const file = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pid-plat-map-dots-${backup.savedAt.slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setSaveMessage(`Exported ${dots.length} dots`);
+  }
+
+  function importDots(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const importedDots = parseDotBackup(String(reader.result));
+        if (!importedDots) {
+          setSaveMessage('Import failed: file did not contain valid dots');
+          return;
+        }
+
+        setDots(importedDots);
+        setSelectedDotId(null);
+        setActiveDotId(null);
+        setSaveMessage(`Imported ${importedDots.length} dots`);
+      } catch {
+        setSaveMessage('Import failed: file could not be read');
+      }
+    };
+    reader.readAsText(file);
   }
 
   function beginDotDrag(event: React.PointerEvent<HTMLButtonElement>, dot: MapDot) {
@@ -257,6 +302,23 @@ function App() {
             <a className="client-view-link" href="#client">
               Open client view
             </a>
+            <div className="backup-actions" aria-label="Dot backup actions">
+              <button type="button" onClick={exportDots}>
+                <Download size={15} />
+                Export dots
+              </button>
+              <button type="button" onClick={() => importInputRef.current?.click()}>
+                <Upload size={15} />
+                Import dots
+              </button>
+              <input
+                ref={importInputRef}
+                className="sr-only"
+                type="file"
+                accept="application/json,.json"
+                onChange={importDots}
+              />
+            </div>
             <p className="save-message">{saveMessage}</p>
           </div>
         </section>
@@ -552,16 +614,68 @@ function resolveImagePath(path: string) {
   return `${import.meta.env.BASE_URL}${trimmedPath.replace(/^\/+/, '')}`;
 }
 
+function createBackup(dots: MapDot[]): DotBackup {
+  return {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    dots,
+  };
+}
+
+function saveDots(dots: MapDot[]) {
+  const backup = createBackup(dots);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(backup));
+
+  const previousBackups = loadBackups();
+  const previousDots = previousBackups[0]?.dots;
+  const backups =
+    previousDots && JSON.stringify(previousDots) === JSON.stringify(dots)
+      ? [backup, ...previousBackups.slice(1)]
+      : [backup, ...previousBackups];
+
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(0, 50)));
+}
+
 function loadSavedDots() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return initialDots;
+    const savedDots = saved ? parseDotBackup(saved) : null;
+    if (savedDots) return savedDots;
 
-    const parsed = JSON.parse(saved);
-    return isDotList(parsed) ? parsed : initialDots;
+    const latestBackup = loadBackups()[0]?.dots;
+    if (latestBackup && isDotList(latestBackup)) return latestBackup;
+
+    return initialDots;
   } catch {
     return initialDots;
   }
+}
+
+function loadBackups() {
+  try {
+    const saved = localStorage.getItem(BACKUP_KEY);
+    if (!saved) return [];
+
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(isDotBackup).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  } catch {
+    return [];
+  }
+}
+
+function parseDotBackup(value: string) {
+  const parsed = JSON.parse(value);
+  if (isDotList(parsed)) return parsed;
+  if (isDotBackup(parsed)) return parsed.dots;
+  return null;
+}
+
+function isDotBackup(value: unknown): value is DotBackup {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<DotBackup>;
+  return candidate.version === 1 && typeof candidate.savedAt === 'string' && isDotList(candidate.dots);
 }
 
 function isDotList(value: unknown): value is MapDot[] {

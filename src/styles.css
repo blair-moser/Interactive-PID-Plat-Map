@@ -125,6 +125,32 @@ button {
   gap: 6px;
 }
 
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.backup-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: rgb(255 255 255 / 0.88);
+  color: var(--text-main);
+  font-size: 0.84rem;
+  font-weight: 800;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+.backup-actions button:hover {
+  border-color: rgb(59 110 168 / 0.45);
+  background: white;
+}
+
 .layout {
   --map-height: clamp(520px, calc(100vh - 215px), 820px);
   --map-width: calc(var(--map-height) * 0.9525);
