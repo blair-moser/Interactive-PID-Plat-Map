@@ -177,6 +177,7 @@ function App() {
     const drag = dragState.current;
     dragState.current = null;
     if (drag?.id === dot.id && drag.moved) return;
+    if (!isClientView) return;
     setActiveDotId(dot.id);
   }
 
