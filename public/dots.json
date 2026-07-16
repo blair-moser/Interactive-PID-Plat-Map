@@ -1,0 +1,35 @@
+[
+  {
+    "id": "dot-1",
+    "parcelNumber": "Parcel 1",
+    "projectName": "Project Area 1",
+    "shortDetails": "Starter dot. Drag in edit mode and replace these details.",
+    "x": 44,
+    "y": 34,
+    "color": "#3b6ea8",
+    "platImage": "pid-no-1-map.png",
+    "siteUrl": ""
+  },
+  {
+    "id": "dot-2",
+    "parcelNumber": "Parcel 2",
+    "projectName": "Project Area 2",
+    "shortDetails": "Add the destination site link and detail plat image for this point.",
+    "x": 58,
+    "y": 46,
+    "color": "#8073ac",
+    "platImage": "pid-no-1-map.png",
+    "siteUrl": ""
+  },
+  {
+    "id": "dot-3",
+    "parcelNumber": "Parcel 3",
+    "projectName": "Project Area 3",
+    "shortDetails": "Hover shows this short summary; click opens the detail overlay.",
+    "x": 36,
+    "y": 58,
+    "color": "#66a61e",
+    "platImage": "pid-no-1-map.png",
+    "siteUrl": ""
+  }
+]

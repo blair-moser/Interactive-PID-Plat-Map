@@ -23,6 +23,7 @@ type DotBackup = {
 
 const STORAGE_KEY = 'pid-plat-map-dots';
 const BACKUP_KEY = 'pid-plat-map-dots-backups';
+const DOTS_FILE_PATH = `${import.meta.env.BASE_URL}dots.json`;
 const DEFAULT_MAP_IMAGE = `${import.meta.env.BASE_URL}pid-no-1-map.png`;
 
 const initialDots: MapDot[] = [
@@ -34,7 +35,7 @@ const initialDots: MapDot[] = [
     x: 44,
     y: 34,
     color: '#3b6ea8',
-    platImage: DEFAULT_MAP_IMAGE,
+    platImage: 'pid-no-1-map.png',
     siteUrl: '',
   },
   {
@@ -45,7 +46,7 @@ const initialDots: MapDot[] = [
     x: 58,
     y: 46,
     color: '#8073ac',
-    platImage: DEFAULT_MAP_IMAGE,
+    platImage: 'pid-no-1-map.png',
     siteUrl: '',
   },
   {
@@ -56,7 +57,7 @@ const initialDots: MapDot[] = [
     x: 36,
     y: 58,
     color: '#66a61e',
-    platImage: DEFAULT_MAP_IMAGE,
+    platImage: 'pid-no-1-map.png',
     siteUrl: '',
   },
 ];
@@ -67,6 +68,7 @@ function App() {
   const importInputRef = useRef<HTMLInputElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
   const [dots, setDots] = useState<MapDot[]>(loadSavedDots);
+  const [canSaveDots, setCanSaveDots] = useState(hasBrowserDots);
   const [selectedDotId, setSelectedDotId] = useState<string | null>(null);
   const [activeDotId, setActiveDotId] = useState<string | null>(null);
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
@@ -92,9 +94,32 @@ function App() {
   }, [dots, selectedDotId]);
 
   useEffect(() => {
+    if (!canSaveDots) return;
     saveDots(dots);
     setSaveMessage(`Saved ${dots.length} dots at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
-  }, [dots]);
+  }, [canSaveDots, dots]);
+
+  useEffect(() => {
+    if (canSaveDots) return;
+
+    fetch(DOTS_FILE_PATH, { cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error('dots.json could not be loaded');
+        return response.json();
+      })
+      .then((value) => {
+        if (isDotList(value)) {
+          setDots(value);
+          setSaveMessage(`Loaded ${value.length} dots from dots.json`);
+        }
+      })
+      .catch(() => {
+        setSaveMessage('Loaded starter dots');
+      })
+      .finally(() => {
+        setCanSaveDots(true);
+      });
+  }, [canSaveDots]);
 
   useEffect(() => {
     function handleHashChange() {
@@ -147,12 +172,11 @@ function App() {
   }
 
   function exportDots() {
-    const backup = createBackup(dots);
-    const file = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const file = new Blob([JSON.stringify(dots, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `pid-plat-map-dots-${backup.savedAt.slice(0, 10)}.json`;
+    link.download = 'dots.json';
     link.click();
     URL.revokeObjectURL(url);
     setSaveMessage(`Exported ${dots.length} dots`);
@@ -305,7 +329,7 @@ function App() {
             <div className="backup-actions" aria-label="Dot backup actions">
               <button type="button" onClick={exportDots}>
                 <Download size={15} />
-                Export dots
+                Export dots.json
               </button>
               <button type="button" onClick={() => importInputRef.current?.click()}>
                 <Upload size={15} />
@@ -637,6 +661,18 @@ function saveDots(dots: MapDot[]) {
 }
 
 function loadSavedDots() {
+  return loadBrowserDots() ?? initialDots;
+}
+
+function hasBrowserDots() {
+  try {
+    return Boolean(loadBrowserDots());
+  } catch {
+    return false;
+  }
+}
+
+function loadBrowserDots() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     const savedDots = saved ? parseDotBackup(saved) : null;
@@ -645,9 +681,9 @@ function loadSavedDots() {
     const latestBackup = loadBackups()[0]?.dots;
     if (latestBackup && isDotList(latestBackup)) return latestBackup;
 
-    return initialDots;
+    return null;
   } catch {
-    return initialDots;
+    return null;
   }
 }
 
