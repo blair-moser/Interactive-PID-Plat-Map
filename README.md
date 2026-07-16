@@ -32,4 +32,4 @@ Editing in the browser still autosaves a working copy locally so changes survive
 3. Run `npm run build`.
 4. Commit and push the updated `public/dots.json`.
 
-The exported `dots.json` file can also be imported back into the app with **Import dots**.
+The exported `dots.json` file is the file to keep in GitHub as the durable source of truth.

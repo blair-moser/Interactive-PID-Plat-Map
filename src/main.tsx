@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Copy, Download, ExternalLink, Plus, Trash2, Upload, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { Copy, Download, ExternalLink, Plus, Trash2, X, ZoomIn, ZoomOut } from 'lucide-react';
 import './styles.css';
 
 type MapDot = {
@@ -65,14 +65,13 @@ const initialDots: MapDot[] = [
 function App() {
   const mapViewportRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
-  const importInputRef = useRef<HTMLInputElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
   const [dots, setDots] = useState<MapDot[]>(loadSavedDots);
   const [canSaveDots, setCanSaveDots] = useState(hasBrowserDots);
   const [selectedDotId, setSelectedDotId] = useState<string | null>(null);
   const [activeDotId, setActiveDotId] = useState<string | null>(null);
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
-    window.location.hash === '#client' ? 'client' : 'editor',
+    window.location.hash === '#editor' ? 'editor' : 'client',
   );
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
@@ -123,7 +122,7 @@ function App() {
 
   useEffect(() => {
     function handleHashChange() {
-      setPageMode(window.location.hash === '#client' ? 'client' : 'editor');
+      setPageMode(window.location.hash === '#editor' ? 'editor' : 'client');
       setActiveDotId(null);
     }
 
@@ -180,31 +179,6 @@ function App() {
     link.click();
     URL.revokeObjectURL(url);
     setSaveMessage(`Exported ${dots.length} dots`);
-  }
-
-  function importDots(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const importedDots = parseDotBackup(String(reader.result));
-        if (!importedDots) {
-          setSaveMessage('Import failed: file did not contain valid dots');
-          return;
-        }
-
-        setDots(importedDots);
-        setSelectedDotId(null);
-        setActiveDotId(null);
-        setSaveMessage(`Imported ${importedDots.length} dots`);
-      } catch {
-        setSaveMessage('Import failed: file could not be read');
-      }
-    };
-    reader.readAsText(file);
   }
 
   function beginDotDrag(event: React.PointerEvent<HTMLButtonElement>, dot: MapDot) {
@@ -331,17 +305,6 @@ function App() {
                 <Download size={15} />
                 Export dots.json
               </button>
-              <button type="button" onClick={() => importInputRef.current?.click()}>
-                <Upload size={15} />
-                Import dots
-              </button>
-              <input
-                ref={importInputRef}
-                className="sr-only"
-                type="file"
-                accept="application/json,.json"
-                onChange={importDots}
-              />
             </div>
             <p className="save-message">{saveMessage}</p>
           </div>
