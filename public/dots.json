@@ -614,5 +614,49 @@
     "color": "#e86e2f",
     "platImage": "H-4-2-12-1104-GS1.png",
     "siteUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1220602&submit=Public+Login&guest=true"
+  },
+  {
+    "id": "dot-1784311345380",
+    "parcelNumber": "H-4-2-1-141-GS1",
+    "projectName": "HD Jewell LLC",
+    "shortDetails": "",
+    "x": 55.254375763232964,
+    "y": 18.8717210265535,
+    "color": "#6f6f6f",
+    "platImage": "H-4-2-1-141-GS1.png",
+    "siteUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1293325&submit=Public+Login&guest=true"
+  },
+  {
+    "id": "dot-1784311444390",
+    "parcelNumber": "H-3-2-6-431-GS1",
+    "projectName": "Western Mortgage & Realty Co.",
+    "shortDetails": "",
+    "x": 70.57408076696278,
+    "y": 21.629426361623423,
+    "color": "#000000",
+    "platImage": "H-3-2-6-431-GS1.png",
+    "siteUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1088240&submit=Public+Login&guest=true"
+  },
+  {
+    "id": "dot-1784312630694",
+    "parcelNumber": "H-3-2-6-1410-GS1",
+    "projectName": "Western Mortgage & Realty Co.",
+    "shortDetails": "",
+    "x": 75.24078671582241,
+    "y": 22.054597284233957,
+    "color": "#000000",
+    "platImage": "H-3-2-6-1410-GS1.png",
+    "siteUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127745&submit=Public+Login&guest=true"
+  },
+  {
+    "id": "dot-1784312988770",
+    "parcelNumber": "H-3-2-6-1406-GS1",
+    "projectName": "Zion Regional Medical Center",
+    "shortDetails": "",
+    "x": 82.26113256358069,
+    "y": 11.889114712812793,
+    "color": "#8228aa",
+    "platImage": "H-3-2-6-1406-GS1.png",
+    "siteUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0881585&submit=Public+Login&guest=true"
   }
 ]
