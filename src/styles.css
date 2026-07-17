@@ -838,6 +838,41 @@ button {
   transition: opacity 140ms ease;
 }
 
+.map-dot.tooltip-left .dot-tooltip {
+  right: calc(100% + 10px);
+  left: auto;
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+.map-dot.tooltip-right .dot-tooltip {
+  right: auto;
+  left: calc(100% + 10px);
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+.map-dot.tooltip-below .dot-tooltip {
+  top: calc(100% + 14px);
+  bottom: auto;
+  transform: translateX(-50%);
+}
+
+.map-dot.tooltip-below-right .dot-tooltip {
+  top: calc(100% + 14px);
+  bottom: auto;
+  left: 0;
+  transform: none;
+}
+
+.map-dot.tooltip-below-left .dot-tooltip {
+  top: calc(100% + 14px);
+  right: 0;
+  bottom: auto;
+  left: auto;
+  transform: none;
+}
+
 .map-dot:hover .dot-tooltip,
 .map-dot:focus-visible .dot-tooltip {
   opacity: 1;

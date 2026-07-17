@@ -431,7 +431,7 @@ function App() {
                   <button
                     key={dot.id}
                     type="button"
-                    className={`map-dot ${selectedDotId === dot.id ? 'is-selected' : ''}`}
+                    className={`map-dot ${selectedDotId === dot.id ? 'is-selected' : ''} ${getTooltipPlacement(dot)}`}
                     style={
                       {
                         '--x': `${dot.x}%`,
@@ -603,6 +603,15 @@ function getPublicDetails(dot: MapDot) {
   ];
 
   return starterCopy.includes(detail) ? '' : detail;
+}
+
+function getTooltipPlacement(dot: MapDot) {
+  if (dot.y < 24 && dot.x < 18) return 'tooltip-below-right';
+  if (dot.y < 24 && dot.x > 82) return 'tooltip-below-left';
+  if (dot.y < 24) return 'tooltip-below';
+  if (dot.x < 18) return 'tooltip-right';
+  if (dot.x > 82) return 'tooltip-left';
+  return 'tooltip-above';
 }
 
 function resolveImagePath(path: string) {
