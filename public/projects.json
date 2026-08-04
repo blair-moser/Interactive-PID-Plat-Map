@@ -19,7 +19,7 @@
     "projectPlatMap": {
       "id": "project-pdf-1-adventus-phase-1",
       "title": "",
-      "file": "",
+      "file": "Adventus Phase 1 Plat.jpg",
       "type": "pdf"
     }
   },
@@ -75,7 +75,7 @@
     "projectPlatMap": {
       "id": "project-pdf-3-bash-facility",
       "title": "",
-      "file": "",
+      "file": "BASH Facility Plat.jpg",
       "type": "pdf"
     }
   },
@@ -443,7 +443,7 @@
     "projectPlatMap": {
       "id": "project-pdf-10-gateway-resort",
       "title": "",
-      "file": "",
+      "file": "Gateway Resort Plat.jpg",
       "type": "pdf"
     }
   },
@@ -611,7 +611,7 @@
     "projectPlatMap": {
       "id": "project-pdf-12-legacy-at-sand-hollow-other",
       "title": "",
-      "file": "",
+      "file": "Legacy Other Plat.jpg",
       "type": "pdf"
     }
   },
@@ -621,7 +621,7 @@
     "shortDetails": "R1-6",
     "x": 38.398108747044915,
     "y": 59.12055843278541,
-    "color": "#6f5fb8",
+    "color": "#c7c7c7",
     "taxIds": [
       {
         "id": "tax-h-lsh-1-1-gs1",
@@ -1069,7 +1069,7 @@
     "shortDetails": "R1-6",
     "x": 44.580614657210404,
     "y": 55.444314343616306,
-    "color": "#4f74c8",
+    "color": "#c7c7c7",
     "taxIds": [
       {
         "id": "tax-h-lsh-2-54-gs1",
@@ -1291,7 +1291,7 @@
     "projectPlatMap": {
       "id": "project-pdf-13-maverik",
       "title": "",
-      "file": "",
+      "file": "Maverik Plat.jpg",
       "type": "pdf"
     }
   },
@@ -3195,7 +3195,7 @@
     "projectPlatMap": {
       "id": "project-pdf-32-zion-regional-medical-center",
       "title": "",
-      "file": "",
+      "file": "Zion Regional Medical Center Plat.jpg",
       "type": "pdf"
     }
   }
