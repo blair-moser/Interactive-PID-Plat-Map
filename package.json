@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "refresh-owners": "node scripts/refresh-owners.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

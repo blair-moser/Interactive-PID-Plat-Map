@@ -1,9 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Copy, Download, ExternalLink, Plus, Trash2, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { Copy, ExternalLink, FileText, Image, Plus, Trash2, X, ZoomIn, ZoomOut } from 'lucide-react';
 import './styles.css';
 
-type MapDot = {
+declare global {
+  interface Window {
+    pidPlatMapRoot?: ReturnType<typeof createRoot>;
+  }
+}
+
+type LegacyMapDot = {
   id: string;
   parcelNumber: string;
   projectName: string;
@@ -15,50 +21,71 @@ type MapDot = {
   siteUrl: string;
 };
 
-type DotBackup = {
-  version: 1;
-  savedAt: string;
-  dots: MapDot[];
+type ProjectAccount = {
+  id: string;
+  taxId: string;
+  label: string;
+  owner: string;
+  accountUrl: string;
+  platImage?: string;
 };
 
-const STORAGE_KEY = 'pid-plat-map-dots';
-const BACKUP_KEY = 'pid-plat-map-dots-backups';
-const DOTS_FILE_PATH = `${import.meta.env.BASE_URL}dots.json`;
+type ProjectPlatMap = {
+  id: string;
+  title: string;
+  file: string;
+  type: 'image' | 'pdf';
+};
+
+type ProjectPoint = {
+  id: string;
+  projectName: string;
+  shortDetails: string;
+  x: number;
+  y: number;
+  color: string;
+  taxIds: ProjectAccount[];
+  projectPlatMap?: ProjectPlatMap;
+};
+
+type ProjectBackup = {
+  version: 2;
+  dataRevision?: string;
+  savedAt: string;
+  projects: ProjectPoint[];
+};
+
+const STORAGE_KEY = 'pid-plat-map-projects-workbook-reconciled-v5';
+const BACKUP_KEY = 'pid-plat-map-projects-workbook-reconciled-v5-backups';
+const DATA_REVISION = 'captured-layout-20260804-135345';
+const PREVIOUS_STORAGE_KEYS: string[] = [];
+const PREVIOUS_BACKUP_KEYS: string[] = [];
+const PUBLISHED_IMPORT_PROJECT_NAMES = [
+  'Legacy at Sand Hollow Phase 1',
+  'Legacy at Sand Hollow Phase 2',
+  'Red Slate Estates Phase 1',
+  'Red Slate Estates Phase 2',
+  'Red Slate Estates Phase 3',
+  'Strawberry Fields Estate Phase 1',
+  'Strawberry Fields Estate Other',
+  'Peach Spring Estate Phase 1',
+  'Peach Spring Estate Phase 2',
+];
+const LEGACY_STORAGE_KEY = 'pid-plat-map-dots';
+const PROJECTS_FILE_PATH = `${import.meta.env.BASE_URL}projects.json`;
+const LEGACY_DOTS_FILE_PATH = `${import.meta.env.BASE_URL}dots.json`;
 const DEFAULT_MAP_IMAGE = `${import.meta.env.BASE_URL}pid-no-1-map.png`;
 
-const initialDots: MapDot[] = [
+const starterProjects: ProjectPoint[] = [
   {
-    id: 'dot-1',
-    parcelNumber: 'Parcel 1',
-    projectName: 'Project Area 1',
-    shortDetails: 'Starter dot. Drag in edit mode and replace these details.',
-    x: 44,
-    y: 34,
-    color: '#3b6ea8',
-    platImage: 'pid-no-1-map.png',
-    siteUrl: '',
-  },
-  {
-    id: 'dot-2',
-    parcelNumber: 'Parcel 2',
-    projectName: 'Project Area 2',
-    shortDetails: 'Add the destination site link and detail plat image for this point.',
-    x: 58,
-    y: 46,
-    color: '#8073ac',
-    platImage: 'pid-no-1-map.png',
-    siteUrl: '',
-  },
-  {
-    id: 'dot-3',
-    parcelNumber: 'Parcel 3',
-    projectName: 'Project Area 3',
-    shortDetails: 'Hover shows this short summary; click opens the detail overlay.',
-    x: 36,
-    y: 58,
-    color: '#66a61e',
-    platImage: 'pid-no-1-map.png',
-    siteUrl: '',
+    id: 'project-1',
+    projectName: 'Western Mortgage & Realty Co.',
+    shortDetails: '',
+    x: 50,
+    y: 50,
+    color: '#000000',
+    taxIds: [],
+    projectPlatMap: createEmptyProjectPdf(),
   },
 ];
 
@@ -66,153 +93,226 @@ function App() {
   const mapViewportRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
-  const [dots, setDots] = useState<MapDot[]>(initialDots);
-  const [canSaveDots, setCanSaveDots] = useState(false);
-  const [selectedDotId, setSelectedDotId] = useState<string | null>(null);
-  const [activeDotId, setActiveDotId] = useState<string | null>(null);
+  const hasUserEdited = useRef(false);
+  const [projects, setProjects] = useState<ProjectPoint[]>(starterProjects);
+  const [canSaveProjects, setCanSaveProjects] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
     window.location.hash === '#editor' ? 'editor' : 'client',
   );
+  const [locationHash, setLocationHash] = useState(() => window.location.hash);
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [saveMessage, setSaveMessage] = useState('Loaded');
 
-  const selectedDot = dots.find((dot) => dot.id === selectedDotId) ?? null;
-  const activeDot = dots.find((dot) => dot.id === activeDotId) ?? null;
+  const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
+  const activeProject = projects.find((project) => project.id === activeProjectId) ?? null;
+  const activeProjectPlatMap = activeProject ? getProjectPlatMap(activeProject) : null;
   const isClientView = pageMode === 'client';
+  const isDraftClientPreview = isClientView && locationHash === '#client';
 
-  const sortedDots = useMemo(
-    () => [...dots].sort((a, b) => a.projectName.localeCompare(b.projectName)),
-    [dots],
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
+    [projects],
   );
 
   useEffect(() => {
-    if (selectedDotId && !dots.some((dot) => dot.id === selectedDotId)) {
-      setSelectedDotId(null);
+    if (selectedProjectId && !projects.some((project) => project.id === selectedProjectId)) {
+      setSelectedProjectId(null);
     }
-  }, [dots, selectedDotId]);
+    if (activeProjectId && !projects.some((project) => project.id === activeProjectId)) {
+      setActiveProjectId(null);
+    }
+  }, [activeProjectId, projects, selectedProjectId]);
 
   useEffect(() => {
-    if (!canSaveDots || isClientView) return;
-    saveDots(dots);
-    setSaveMessage(`Saved ${dots.length} dots at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
-  }, [canSaveDots, dots, isClientView]);
+    if (!canSaveProjects || isClientView || !hasUserEdited.current) return;
+    saveProjects(projects);
+    setSaveMessage(
+      `Saved ${projects.length} projects at ${new Date().toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+      })}`,
+    );
+  }, [canSaveProjects, projects, isClientView]);
 
   useEffect(() => {
     let cancelled = false;
 
-    if (!isClientView) {
-      const browserDots = loadBrowserDots();
-      if (browserDots) {
-        setDots(browserDots);
-        setCanSaveDots(true);
-        setSaveMessage(`Loaded ${browserDots.length} saved draft dots`);
+    if (!isClientView || isDraftClientPreview) {
+      const browserProjects = loadBrowserProjects();
+      if (browserProjects) {
+        loadPublishedProjects()
+          .then((publishedProjects) => {
+            if (cancelled) return;
+            const mergedProjects = normalizeTaxIdPlatImageImports(
+              normalizeProjectPlatMapImports(
+                splitCombinedWesternMortgageProjects(
+                  mergePublishedImports(browserProjects, publishedProjects),
+                  publishedProjects,
+                ),
+                publishedProjects,
+              ),
+              publishedProjects,
+            );
+            setProjects(mergedProjects);
+            setSaveMessage(
+              isDraftClientPreview
+                ? `Previewing ${mergedProjects.length} draft projects`
+                : `Loaded ${mergedProjects.length} saved draft projects`,
+            );
+          })
+          .catch(() => {
+            if (cancelled) return;
+            setProjects(browserProjects);
+            setSaveMessage(
+              isDraftClientPreview
+                ? `Previewing ${browserProjects.length} draft projects`
+                : `Loaded ${browserProjects.length} saved draft projects`,
+            );
+          })
+          .finally(() => {
+            if (!cancelled) setCanSaveProjects(!isClientView);
+          });
         return () => {
           cancelled = true;
         };
       }
     }
 
-    setCanSaveDots(false);
-    loadPublishedDots()
-      .then((publishedDots) => {
-        if (cancelled || !publishedDots) return;
-        setDots(publishedDots);
-        setSaveMessage(`Loaded ${publishedDots.length} dots from dots.json`);
+    setCanSaveProjects(false);
+    loadPublishedProjects()
+      .then((publishedProjects) => {
+        if (cancelled || !publishedProjects) return;
+        setProjects(publishedProjects);
+        setSaveMessage(`Loaded ${publishedProjects.length} projects`);
       })
       .catch(() => {
-        if (!cancelled) setSaveMessage('Loaded starter dots');
+        if (!cancelled) setSaveMessage('Loaded starter project');
       })
       .finally(() => {
-        if (!cancelled && !isClientView) setCanSaveDots(true);
+        if (!cancelled && !isClientView) setCanSaveProjects(true);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [isClientView]);
+  }, [isClientView, isDraftClientPreview]);
 
   useEffect(() => {
     function handleHashChange() {
+      setLocationHash(window.location.hash);
       setPageMode(window.location.hash === '#editor' ? 'editor' : 'client');
-      setActiveDotId(null);
+      setActiveProjectId(null);
     }
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  function updateDot(id: string, patch: Partial<MapDot>) {
-    setDots((current) => current.map((dot) => (dot.id === id ? { ...dot, ...patch } : dot)));
+  function updateProject(id: string, patch: Partial<ProjectPoint>) {
+    hasUserEdited.current = true;
+    setProjects((current) =>
+      current.map((project) => (project.id === id ? { ...project, ...patch } : project)),
+    );
   }
 
-  function addDot() {
-    const nextDot: MapDot = {
-      id: `dot-${Date.now()}`,
-      parcelNumber: '',
+  function addProject() {
+    hasUserEdited.current = true;
+    const nextProject: ProjectPoint = {
+      id: `project-${Date.now()}`,
       projectName: 'Western Mortgage & Realty Co.',
       shortDetails: '',
       x: 50,
       y: 50,
       color: '#000000',
-      platImage: '',
-      siteUrl: '',
+      taxIds: [],
+      projectPlatMap: createEmptyProjectPdf(),
     };
-    setDots((current) => [...current, nextDot]);
-    setSelectedDotId(nextDot.id);
+    setProjects((current) => [...current, nextProject]);
+    setSelectedProjectId(nextProject.id);
   }
 
-  function duplicateSelectedDot() {
-    if (!selectedDot) return;
+  function duplicateSelectedProject() {
+    if (!selectedProject) return;
+    hasUserEdited.current = true;
 
-    const duplicatedDot: MapDot = {
-      ...selectedDot,
-      id: `dot-${Date.now()}`,
-      x: clamp(selectedDot.x + 1.5, 0, 100),
-      y: clamp(selectedDot.y + 1.5, 0, 100),
+    const duplicatedProject: ProjectPoint = {
+      ...selectedProject,
+      id: `project-${Date.now()}`,
+      projectName: `${selectedProject.projectName} Copy`,
+      x: clamp(selectedProject.x + 1.5, 0, 100),
+      y: clamp(selectedProject.y + 1.5, 0, 100),
+      taxIds: selectedProject.taxIds.map((taxId) => ({ ...taxId, id: `tax-${Date.now()}-${taxId.id}` })),
+      projectPlatMap: selectedProject.projectPlatMap
+        ? { ...selectedProject.projectPlatMap, id: `project-pdf-${Date.now()}` }
+        : createEmptyProjectPdf(),
     };
 
-    setDots((current) => [...current, duplicatedDot]);
-    setSelectedDotId(duplicatedDot.id);
+    setProjects((current) => [...current, duplicatedProject]);
+    setSelectedProjectId(duplicatedProject.id);
   }
 
-  function removeSelectedDot() {
-    if (!selectedDot || dots.length <= 1) return;
-    setDots((current) => current.filter((dot) => dot.id !== selectedDot.id));
-    setActiveDotId((current) => (current === selectedDot.id ? null : current));
+  function removeSelectedProject() {
+    if (!selectedProject || projects.length <= 1) return;
+    hasUserEdited.current = true;
+    setProjects((current) => current.filter((project) => project.id !== selectedProject.id));
+    setActiveProjectId((current) => (current === selectedProject.id ? null : current));
   }
 
-  function exportDots() {
-    const file = new Blob([JSON.stringify(dots, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'dots.json';
-    link.click();
-    URL.revokeObjectURL(url);
-    setSaveMessage(`Exported ${dots.length} dots`);
+  function addTaxId(projectId: string) {
+    hasUserEdited.current = true;
+    const nextTaxId: ProjectAccount = {
+      id: `tax-${Date.now()}`,
+      taxId: '',
+      label: '',
+      owner: '',
+      accountUrl: '',
+    };
+    updateProject(projectId, {
+      taxIds: [...(projects.find((project) => project.id === projectId)?.taxIds ?? []), nextTaxId],
+    });
   }
 
-  function beginDotDrag(event: React.PointerEvent<HTMLButtonElement>, dot: MapDot) {
+  function updateTaxId(projectId: string, taxIdId: string, patch: Partial<ProjectAccount>) {
+    const project = projects.find((candidate) => candidate.id === projectId);
+    if (!project) return;
+    hasUserEdited.current = true;
+    updateProject(projectId, {
+      taxIds: project.taxIds.map((taxId) => (taxId.id === taxIdId ? { ...taxId, ...patch } : taxId)),
+    });
+  }
+
+  function removeTaxId(projectId: string, taxIdId: string) {
+    const project = projects.find((candidate) => candidate.id === projectId);
+    if (!project) return;
+    hasUserEdited.current = true;
+    updateProject(projectId, {
+      taxIds: project.taxIds.filter((taxId) => taxId.id !== taxIdId),
+    });
+  }
+
+  function beginProjectDrag(event: React.PointerEvent<HTMLButtonElement>, project: ProjectPoint) {
     if (isClientView || !mapRef.current) return;
 
     event.preventDefault();
     event.stopPropagation();
-    setSelectedDotId(dot.id);
-    dragState.current = { id: dot.id, moved: false };
+    setSelectedProjectId(project.id);
+    dragState.current = { id: project.id, moved: false };
 
     const rect = mapRef.current.getBoundingClientRect();
     const startX = event.clientX;
     const startY = event.clientY;
-    const original = { x: dot.x, y: dot.y };
+    const original = { x: project.x, y: project.y };
 
     function move(pointerEvent: PointerEvent) {
       const dx = ((pointerEvent.clientX - startX) / rect.width) * 100;
       const dy = ((pointerEvent.clientY - startY) / rect.height) * 100;
       if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-        dragState.current = { id: dot.id, moved: true };
+        dragState.current = { id: project.id, moved: true };
       }
-      updateDot(dot.id, {
+      updateProject(project.id, {
         x: clamp(original.x + dx, 0, 100),
         y: clamp(original.y + dy, 0, 100),
       });
@@ -227,13 +327,13 @@ function App() {
     window.addEventListener('pointerup', end);
   }
 
-  function handleDotClick(dot: MapDot) {
-    setSelectedDotId(dot.id);
+  function handleProjectClick(project: ProjectPoint) {
+    setSelectedProjectId(project.id);
     const drag = dragState.current;
     dragState.current = null;
-    if (drag?.id === dot.id && drag.moved) return;
+    if (drag?.id === project.id && drag.moved) return;
     if (!isClientView) return;
-    setActiveDotId(dot.id);
+    setActiveProjectId(project.id);
   }
 
   function setBoundedZoom(nextZoom: number) {
@@ -304,20 +404,14 @@ function App() {
           <div>
             <h1>Interactive PID Project Plat Map</h1>
             <p>
-              Add parcel/project dots to the plat. Hover for quick parcel details, click for an
-              in-site detail view with a plat image and linked site.
+              Add one point per project, then list each related tax ID, account overview link, and
+              project plat map inside the project.
             </p>
           </div>
           <div className="hero-actions">
-            <a className="client-view-link" href="#client">
+            <a className="client-view-link" href="#client" onClick={() => saveProjects(projects)}>
               Open client view
             </a>
-            <div className="backup-actions" aria-label="Dot backup actions">
-              <button type="button" onClick={exportDots}>
-                <Download size={15} />
-                Export dots.json
-              </button>
-            </div>
             <p className="save-message">{saveMessage}</p>
           </div>
         </section>
@@ -325,32 +419,30 @@ function App() {
 
       <section className={`layout ${isClientView ? 'client-layout' : ''}`}>
         {!isClientView && (
-        <aside className="sidebar dots-sidebar">
-          <div className="panel">
-            <h2>Dots</h2>
-            <div className="legend">
-              {sortedDots.map((dot) => (
-                <button
-                  key={dot.id}
-                  type="button"
-                  className={`legend-project ${selectedDotId === dot.id ? 'is-selected' : ''}`}
-                  onClick={() => {
-                    setSelectedDotId(dot.id);
-                  }}
-                >
-                  <span
-                    className="swatch"
-                    style={{ '--status-color': dot.color } as React.CSSProperties}
-                  />
-                  <span>
-                    {dot.projectName}
-                    <small>{dot.parcelNumber}</small>
-                  </span>
-                </button>
-              ))}
+          <aside className="sidebar dots-sidebar">
+            <div className="panel">
+              <h2>Projects</h2>
+              <div className="legend">
+                {sortedProjects.map((project) => (
+                  <button
+                    key={project.id}
+                    type="button"
+                    className={`legend-project ${selectedProjectId === project.id ? 'is-selected' : ''}`}
+                    onClick={() => setSelectedProjectId(project.id)}
+                  >
+                    <span
+                      className="swatch"
+                      style={{ '--status-color': project.color } as React.CSSProperties}
+                    />
+                    <span>
+                      {project.projectName || 'Unnamed project'}
+                      <small>{project.taxIds.length} tax IDs · {countProjectPlatMaps(project)} plats</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
         )}
 
         <section className="map-card" aria-label="Interactive plat map">
@@ -361,36 +453,37 @@ function App() {
                   <p>Interactive project map</p>
                   <h1>PID No. 1 Project Areas</h1>
                 </div>
-                <span>{dots.length} areas</span>
+                <span>{projects.length} projects</span>
               </div>
               <p className="client-guide-copy">
-                Select a project below or click a dot on the map. Use the zoom buttons to inspect
-                the plat, then drag the map to pan while zoomed in.
+                Select a project below or click a dot on the map. Each project can contain multiple
+                tax IDs and plat maps.
               </p>
               <div className="client-project-list" aria-label="Project list">
-                {sortedDots.map((dot) => (
+                {sortedProjects.map((project) => (
                   <button
-                    key={dot.id}
+                    key={project.id}
                     type="button"
-                    className={`client-project-button ${selectedDotId === dot.id ? 'is-selected' : ''}`}
+                    className={`client-project-button ${selectedProjectId === project.id ? 'is-selected' : ''}`}
                     onClick={() => {
-                      setSelectedDotId(dot.id);
-                      setActiveDotId(dot.id);
+                      setSelectedProjectId(project.id);
+                      setActiveProjectId(project.id);
                     }}
                   >
                     <span
                       className="client-project-marker"
-                      style={{ '--status-color': dot.color } as React.CSSProperties}
+                      style={{ '--status-color': project.color } as React.CSSProperties}
                     />
                     <span className="client-project-text">
-                      <strong>{dot.projectName || 'Unnamed project'}</strong>
-                      <small>{dot.parcelNumber || 'Parcel not assigned'}</small>
+                      <strong>{project.projectName || 'Unnamed project'}</strong>
+                      <small>{project.taxIds.length} tax IDs · {countProjectPlatMaps(project)} plat maps</small>
                     </span>
                   </button>
                 ))}
               </div>
             </div>
           )}
+
           <div className="map-zoom-buttons" aria-label="Map zoom controls">
             <button
               type="button"
@@ -427,26 +520,26 @@ function App() {
             >
               <img src={DEFAULT_MAP_IMAGE} alt="PID No. 1 plat map page 2" draggable={false} />
               <div className="dot-layer">
-                {dots.map((dot) => (
+                {projects.map((project) => (
                   <button
-                    key={dot.id}
+                    key={project.id}
                     type="button"
-                    className={`map-dot ${selectedDotId === dot.id ? 'is-selected' : ''} ${getTooltipPlacement(dot)}`}
+                    className={`map-dot ${selectedProjectId === project.id ? 'is-selected' : ''} ${getTooltipPlacement(project)}`}
                     style={
                       {
-                        '--x': `${dot.x}%`,
-                        '--y': `${dot.y}%`,
-                        '--dot-color': dot.color,
+                        '--x': `${project.x}%`,
+                        '--y': `${project.y}%`,
+                        '--dot-color': project.color,
                       } as React.CSSProperties
                     }
-                    onPointerDown={(event) => beginDotDrag(event, dot)}
-                    onClick={() => handleDotClick(dot)}
-                    aria-label={`${dot.projectName}, ${dot.parcelNumber}`}
+                    onPointerDown={(event) => beginProjectDrag(event, project)}
+                    onClick={() => handleProjectClick(project)}
+                    aria-label={`${project.projectName}, ${project.taxIds.length} tax IDs`}
                   >
                     <span className="dot-tooltip">
-                      <strong>{dot.projectName || 'Unnamed project'}</strong>
-                      <em>{dot.parcelNumber || 'Parcel not assigned'}</em>
-                      <span>{getPublicDetails(dot) || 'Click for project details.'}</span>
+                      <strong>{project.projectName || 'Unnamed project'}</strong>
+                      <em>{project.taxIds.length} tax IDs · {countProjectPlatMaps(project)} plats</em>
+                      <span>{getPublicDetails(project) || 'Click for project details.'}</span>
                     </span>
                   </button>
                 ))}
@@ -454,39 +547,94 @@ function App() {
             </div>
           </section>
 
-          {activeDot && (
-            <div className="detail-overlay" role="dialog" aria-modal="true" aria-label={`${activeDot.projectName} details`}>
+          {activeProject && (
+            <div
+              className="detail-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${activeProject.projectName} details`}
+            >
               <div className="detail-card">
                 <div className="detail-header">
                   <div>
-                    <p>{activeDot.parcelNumber || 'Parcel not assigned'}</p>
-                    <h2>{activeDot.projectName || 'Unnamed project'}</h2>
+                    <h2>{activeProject.projectName || 'Unnamed project'}</h2>
+                    <p>{activeProject.taxIds.length} tax IDs · {countProjectPlatMaps(activeProject)} plat maps</p>
                   </div>
-                  <button type="button" onClick={() => setActiveDotId(null)} aria-label="Close details">
+                  <button type="button" onClick={() => setActiveProjectId(null)} aria-label="Close details">
                     <X size={18} />
                   </button>
                 </div>
-                <p className="detail-summary">
-                  {getPublicDetails(activeDot) || 'No additional project notes are available yet.'}
-                </p>
-
-                <div className="detail-grid">
+                
+                <div className="detail-grid project-detail-grid">
+                  {activeProjectPlatMap && (
+                    <section className="project-plat-section">
+                      <h3>Project plat map</h3>
+                      {isImagePlatMap(activeProjectPlatMap) ? (
+                        <a
+                          className="project-plat-preview-link"
+                          href={resolveAssetPath(activeProjectPlatMap.file)}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`Open ${activeProjectPlatMap.title || activeProject.projectName} plat map`}
+                        >
+                          <img
+                            className="project-plat-preview"
+                            src={resolveAssetPath(activeProjectPlatMap.file)}
+                            alt={`${activeProjectPlatMap.title || activeProject.projectName} plat map`}
+                          />
+                        </a>
+                      ) : (
+                        <a
+                          className="account-overview-link secondary-link"
+                          href={resolveAssetPath(activeProjectPlatMap.file)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <FileText size={16} />
+                          Open project plat map
+                        </a>
+                      )}
+                    </section>
+                  )}
                   <section>
-                    <h3>Plat Map Image</h3>
-                    {activeDot.platImage ? (
-                      <img src={resolveImagePath(activeDot.platImage)} alt={`${activeDot.projectName} plat map`} />
+                    <h3>Tax IDs & Account Overviews</h3>
+                    {activeProject.taxIds.length ? (
+                      <div className="tax-id-list">
+                        {sortTaxIds(activeProject.taxIds).map((taxId) => (
+                          <article key={taxId.id} className="tax-id-card">
+                            <div className="tax-id-copy">
+                              <strong>{taxId.taxId || 'Tax ID not assigned'}</strong>
+                              {(taxId.label || taxId.owner) && (
+                                <span>{[taxId.label, taxId.owner].filter(Boolean).join(' · ')}</span>
+                              )}
+                            </div>
+                            <div className="tax-id-media">
+                              {getTaxIdPlatImage(taxId) && (
+                                <img
+                                  className="compact-plat-preview"
+                                  src={resolveAssetPath(getTaxIdPlatImage(taxId)?.file ?? '')}
+                                  alt={`${taxId.taxId} plat map`}
+                                />
+                              )}
+                            </div>
+                            {taxId.accountUrl ? (
+                              <a
+                                className="account-overview-link tax-id-account-link"
+                                href={taxId.accountUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <ExternalLink size={16} />
+                                Open Account Overview
+                              </a>
+                            ) : (
+                              <div className="empty-detail compact-empty tax-id-account-link">No account link yet.</div>
+                            )}
+                          </article>
+                        ))}
+                      </div>
                     ) : (
-                      <div className="empty-detail">No detail plat image is available for this project yet.</div>
-                    )}
-                  </section>
-                  <section>
-                    {activeDot.siteUrl ? (
-                      <a className="account-overview-link" href={activeDot.siteUrl} target="_blank" rel="noreferrer">
-                        <ExternalLink size={16} />
-                        Open Account Overview
-                      </a>
-                    ) : (
-                      <div className="empty-detail">No linked project site is available for this project yet.</div>
+                      <div className="empty-detail">No tax IDs have been added to this project yet.</div>
                     )}
                   </section>
                 </div>
@@ -497,89 +645,170 @@ function App() {
 
         {!isClientView && (
           <aside className="sidebar editor-sidebar">
-            {selectedDot ? (
+            {selectedProject ? (
               <div className="panel selected-panel">
                 <div className="selected-heading">
-                  <h2>{selectedDot.projectName}</h2>
+                  <h2>{selectedProject.projectName || 'Unnamed project'}</h2>
                 </div>
 
                 <div className="project-fields">
                   <label>
-                    Parcel number
-                    <input
-                      type="text"
-                      value={selectedDot.parcelNumber}
-                      onChange={(event) => updateDot(selectedDot.id, { parcelNumber: event.target.value })}
-                    />
-                  </label>
-                  <label>
                     Project name
                     <input
                       type="text"
-                      value={selectedDot.projectName}
-                      onChange={(event) => updateDot(selectedDot.id, { projectName: event.target.value })}
+                      value={selectedProject.projectName}
+                      onChange={(event) => updateProject(selectedProject.id, { projectName: event.target.value })}
                     />
                   </label>
                   <label>
                     Short hover details
                     <textarea
-                      value={selectedDot.shortDetails}
-                      onChange={(event) => updateDot(selectedDot.id, { shortDetails: event.target.value })}
+                      value={selectedProject.shortDetails}
+                      onChange={(event) => updateProject(selectedProject.id, { shortDetails: event.target.value })}
                     />
                   </label>
                   <label>
                     Dot color
                     <input
                       type="color"
-                      value={selectedDot.color}
-                      onChange={(event) => updateDot(selectedDot.id, { color: event.target.value })}
+                      value={selectedProject.color}
+                      onChange={(event) => updateProject(selectedProject.id, { color: event.target.value })}
                     />
                   </label>
                   <label>
-                    Detail plat map image path or URL
+                    Project plat map title
                     <input
                       type="text"
-                      value={selectedDot.platImage}
-                      placeholder="my-plat-image.png"
-                      onChange={(event) => updateDot(selectedDot.id, { platImage: event.target.value })}
+                      value={selectedProject.projectPlatMap?.title ?? ''}
+                      placeholder="Project plat map"
+                      onChange={(event) =>
+                        updateProject(selectedProject.id, {
+                          projectPlatMap: {
+                            ...(selectedProject.projectPlatMap ?? createEmptyProjectPdf()),
+                            title: event.target.value,
+                            type: 'pdf',
+                          },
+                        })
+                      }
                     />
                   </label>
                   <label>
-                    Linked site URL
+                    Project plat map path or URL
                     <input
-                      type="url"
-                      value={selectedDot.siteUrl}
-                      placeholder="https://example.com"
-                      onChange={(event) => updateDot(selectedDot.id, { siteUrl: event.target.value })}
+                      type="text"
+                      value={selectedProject.projectPlatMap?.file ?? ''}
+                      placeholder="plats/project-plat.pdf"
+                      onChange={(event) =>
+                        updateProject(selectedProject.id, {
+                          projectPlatMap: {
+                            ...(selectedProject.projectPlatMap ?? createEmptyProjectPdf()),
+                            file: event.target.value,
+                            type: 'pdf',
+                          },
+                        })
+                      }
                     />
                   </label>
                 </div>
 
+                <div className="nested-editor-section">
+                  <div className="nested-editor-heading">
+                    <h3>Tax IDs</h3>
+                    <button type="button" onClick={() => addTaxId(selectedProject.id)}>
+                      <Plus size={14} />
+                      Add tax ID
+                    </button>
+                  </div>
+                  {selectedProject.taxIds.length ? (
+                    <div className="nested-editor-list">
+                      {sortTaxIds(selectedProject.taxIds).map((taxId) => (
+                        <div key={taxId.id} className="nested-editor-card">
+                          <label>
+                            Tax ID
+                            <input
+                              type="text"
+                              value={taxId.taxId}
+                              onChange={(event) =>
+                                updateTaxId(selectedProject.id, taxId.id, { taxId: event.target.value })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Label
+                            <input
+                              type="text"
+                              value={taxId.label}
+                              placeholder="Lot 1, Outlot A, Phase 2..."
+                              onChange={(event) =>
+                                updateTaxId(selectedProject.id, taxId.id, { label: event.target.value })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Owner
+                            <input
+                              type="text"
+                              value={taxId.owner}
+                              onChange={(event) =>
+                                updateTaxId(selectedProject.id, taxId.id, { owner: event.target.value })
+                              }
+                            />
+                          </label>
+                          <label>
+                            Account overview URL
+                            <input
+                              type="url"
+                              value={taxId.accountUrl}
+                              placeholder="https://eweb.washco.utah.gov/..."
+                              onChange={(event) =>
+                                updateTaxId(selectedProject.id, taxId.id, { accountUrl: event.target.value })
+                              }
+                            />
+                          </label>
+                          <p className="nested-editor-empty">
+                            Plat image: {taxId.taxId ? `${taxId.taxId}.png` : 'enter a Tax ID to create the image path'}
+                          </p>
+                          <button
+                            type="button"
+                            className="remove-nested-button"
+                            onClick={() => removeTaxId(selectedProject.id, taxId.id)}
+                          >
+                            <Trash2 size={14} />
+                            Remove tax ID
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="nested-editor-empty">No tax IDs added yet.</p>
+                  )}
+                </div>
+
                 <div className="shape-editor">
                   <div className="shape-actions">
-                    <button type="button" onClick={addDot}>
+                    <button type="button" onClick={addProject}>
                       <Plus size={15} />
-                      Add dot
+                      Add project
                     </button>
-                    <button type="button" onClick={duplicateSelectedDot}>
+                    <button type="button" onClick={duplicateSelectedProject}>
                       <Copy size={15} />
                       Duplicate selected
                     </button>
-                    <button type="button" onClick={removeSelectedDot} disabled={dots.length <= 1}>
+                    <button type="button" onClick={removeSelectedProject} disabled={projects.length <= 1}>
                       <Trash2 size={15} />
                       Remove selected
                     </button>
                   </div>
-                  <p>Drag a dot on the map to position it. Click a dot to open its detail overlay.</p>
+                  <p>Drag a project dot on the map to position it. Client clicks open project details.</p>
                 </div>
               </div>
             ) : (
               <div className="panel empty-selection-panel">
-                <h2>No dot selected</h2>
-                <p>Select a dot from the map or the Dots list to edit its details.</p>
-                <button type="button" onClick={addDot}>
+                <h2>No project selected</h2>
+                <p>Select a project from the map or the Projects list to edit its details.</p>
+                <button type="button" onClick={addProject}>
                   <Plus size={15} />
-                  Add dot
+                  Add project
                 </button>
               </div>
             )}
@@ -594,27 +823,67 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getPublicDetails(dot: MapDot) {
-  const detail = dot.shortDetails.trim();
-  const starterCopy = [
-    'Starter dot. Drag in edit mode and replace these details.',
-    'Add the destination site link and detail plat image for this point.',
-    'Hover shows this short summary; click opens the detail overlay.',
-  ];
-
-  return starterCopy.includes(detail) ? '' : detail;
+function countProjectPlatMaps(project: ProjectPoint) {
+  const taxIdImageCount = project.taxIds.filter((taxId) => getTaxIdPlatImage(taxId)).length;
+  return taxIdImageCount + (getProjectPlatMap(project) ? 1 : 0);
 }
 
-function getTooltipPlacement(dot: MapDot) {
-  if (dot.y < 24 && dot.x < 18) return 'tooltip-below-right';
-  if (dot.y < 24 && dot.x > 82) return 'tooltip-below-left';
-  if (dot.y < 24) return 'tooltip-below';
-  if (dot.x < 18) return 'tooltip-right';
-  if (dot.x > 82) return 'tooltip-left';
+function getTaxIdPlatImage(taxId: ProjectAccount): ProjectPlatMap | null {
+  if (taxId.platImage !== undefined) {
+    const platImage = taxId.platImage.trim();
+    if (!platImage) return null;
+    return {
+      id: `custom-plat-${taxId.id}`,
+      title: taxId.taxId,
+      file: platImage,
+      type: 'image',
+    };
+  }
+
+  const taxIdFileName = taxId.taxId.trim();
+  if (!taxIdFileName) return null;
+
+  return {
+    id: `default-plat-${taxId.id}`,
+    title: taxId.taxId,
+    file: `${taxIdFileName}.png`,
+    type: 'image',
+  };
+}
+
+function getProjectPlatMap(project: ProjectPoint) {
+  const projectPlatMap = project.projectPlatMap;
+  if (!projectPlatMap?.file.trim()) return null;
+  return projectPlatMap;
+}
+
+function isImagePlatMap(platMap: ProjectPlatMap) {
+  return platMap.type === 'image' || /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(platMap.file.trim());
+}
+
+function createEmptyProjectPdf(): ProjectPlatMap {
+  return {
+    id: `project-pdf-${Date.now()}`,
+    title: '',
+    file: '',
+    type: 'pdf',
+  };
+}
+
+function getPublicDetails(project: ProjectPoint) {
+  return project.shortDetails.trim();
+}
+
+function getTooltipPlacement(project: ProjectPoint) {
+  if (project.y < 24 && project.x < 18) return 'tooltip-below-right';
+  if (project.y < 24 && project.x > 82) return 'tooltip-below-left';
+  if (project.y < 24) return 'tooltip-below';
+  if (project.x < 18) return 'tooltip-right';
+  if (project.x > 82) return 'tooltip-left';
   return 'tooltip-above';
 }
 
-function resolveImagePath(path: string) {
+function resolveAssetPath(path: string) {
   const trimmedPath = path.trim();
   if (!trimmedPath) return '';
   if (/^(https?:|data:|blob:)/i.test(trimmedPath)) return trimmedPath;
@@ -622,44 +891,110 @@ function resolveImagePath(path: string) {
   return `${import.meta.env.BASE_URL}${trimmedPath.replace(/^\/+/, '')}`;
 }
 
-function createBackup(dots: MapDot[]): DotBackup {
+function createBackup(projects: ProjectPoint[]): ProjectBackup {
   return {
-    version: 1,
+    version: 2,
+    dataRevision: DATA_REVISION,
     savedAt: new Date().toISOString(),
-    dots,
+    projects,
   };
 }
 
-function saveDots(dots: MapDot[]) {
-  const backup = createBackup(dots);
+function saveProjects(projects: ProjectPoint[]) {
+  const sortedProjects = projects.map((project) => ({
+    ...project,
+    taxIds: sortTaxIds(project.taxIds),
+  }));
+  const backup = createBackup(sortedProjects);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(backup));
 
   const previousBackups = loadBackups();
-  const previousDots = previousBackups[0]?.dots;
+  const previousProjects = previousBackups[0]?.projects;
   const backups =
-    previousDots && JSON.stringify(previousDots) === JSON.stringify(dots)
+    previousProjects && JSON.stringify(previousProjects) === JSON.stringify(sortedProjects)
       ? [backup, ...previousBackups.slice(1)]
       : [backup, ...previousBackups];
 
   localStorage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(0, 50)));
 }
 
-async function loadPublishedDots() {
-  const response = await fetch(DOTS_FILE_PATH, { cache: 'no-store' });
-  if (!response.ok) return null;
-
-  const parsed = await response.json();
-  return isDotList(parsed) ? parsed : null;
+function sortTaxIds(taxIds: ProjectAccount[]) {
+  return [...taxIds].sort((a, b) => compareTaxIds(a.taxId, b.taxId));
 }
 
-function loadBrowserDots() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const savedDots = saved ? parseDotBackup(saved) : null;
-    if (savedDots) return savedDots;
+function compareTaxIds(a: string, b: string) {
+  const aParts = splitTaxIdForSort(a);
+  const bParts = splitTaxIdForSort(b);
+  const maxLength = Math.max(aParts.length, bParts.length);
 
-    const latestBackup = loadBackups()[0]?.dots;
-    if (latestBackup && isDotList(latestBackup)) return latestBackup;
+  for (let index = 0; index < maxLength; index++) {
+    const aPart = aParts[index];
+    const bPart = bParts[index];
+    if (!aPart) return bPart ? -1 : 0;
+    if (!bPart) return 1;
+
+    if (aPart.type !== bPart.type) {
+      return aPart.type === 'number' ? -1 : 1;
+    }
+
+    if (aPart.type === 'number' && bPart.type === 'number') {
+      const numberDifference = aPart.value - bPart.value;
+      if (numberDifference !== 0) return numberDifference;
+
+      const lengthDifference = aPart.raw.length - bPart.raw.length;
+      if (lengthDifference !== 0) return lengthDifference;
+      continue;
+    }
+
+    const textDifference = aPart.raw.localeCompare(bPart.raw, undefined, {
+      numeric: true,
+      sensitivity: 'base',
+    });
+    if (textDifference !== 0) return textDifference;
+  }
+
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+}
+
+function splitTaxIdForSort(taxId: string) {
+  return taxId
+    .trim()
+    .toUpperCase()
+    .match(/\d+|[A-Z]+|[^A-Z\d]+/g)
+    ?.map((raw) =>
+      /^\d+$/.test(raw)
+        ? ({ type: 'number' as const, raw, value: Number(raw) })
+        : ({ type: 'text' as const, raw, value: raw }),
+    ) ?? [];
+}
+
+async function loadPublishedProjects() {
+  const projects = await fetchJson(PROJECTS_FILE_PATH);
+  if (isProjectList(projects)) return projects;
+
+  const legacyDots = await fetchJson(LEGACY_DOTS_FILE_PATH);
+  if (isLegacyDotList(legacyDots)) return convertDotsToProjects(legacyDots);
+
+  return null;
+}
+
+async function fetchJson(path: string) {
+  try {
+    const response = await fetch(path, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
+function loadBrowserProjects() {
+  try {
+    const savedProjects = loadFirstStoredProjectList([STORAGE_KEY, ...PREVIOUS_STORAGE_KEYS]);
+    if (savedProjects) return savedProjects;
+
+    const latestBackup = loadBackups()[0]?.projects;
+    if (latestBackup && isProjectList(latestBackup)) return latestBackup;
 
     return null;
   } catch {
@@ -667,39 +1002,380 @@ function loadBrowserDots() {
   }
 }
 
+function mergePublishedImports(draftProjects: ProjectPoint[], publishedProjects: ProjectPoint[] | null) {
+  if (!publishedProjects) return draftProjects;
+
+  let hasChanges = false;
+  const publishedImportProjects = new Map(
+    publishedProjects
+      .filter((project) => PUBLISHED_IMPORT_PROJECT_NAMES.includes(project.projectName.trim()))
+      .map((project) => [project.projectName.trim().toLowerCase(), project]),
+  );
+
+  const mergedProjects = draftProjects.map((draftProject) => {
+    const publishedProject = publishedImportProjects.get(draftProject.projectName.trim().toLowerCase());
+    if (!publishedProject) return draftProject;
+
+    const draftTaxIds = new Set(draftProject.taxIds.map((taxId) => taxId.taxId.trim().toLowerCase()));
+    const missingTaxIds = publishedProject.taxIds.filter((taxId) => !draftTaxIds.has(taxId.taxId.trim().toLowerCase()));
+    const mergedTaxIds = draftProject.taxIds.map((draftTaxId) => {
+      const publishedTaxId = publishedProject.taxIds.find(
+        (taxId) => taxId.taxId.trim().toLowerCase() === draftTaxId.taxId.trim().toLowerCase(),
+      );
+      if (!publishedTaxId) return draftTaxId;
+
+      const hydratedTaxId = {
+        ...draftTaxId,
+        owner: draftTaxId.owner || publishedTaxId.owner,
+        accountUrl: draftTaxId.accountUrl || publishedTaxId.accountUrl,
+        platImage: draftTaxId.platImage || publishedTaxId.platImage,
+      };
+      if (JSON.stringify(hydratedTaxId) !== JSON.stringify(draftTaxId)) hasChanges = true;
+      return hydratedTaxId;
+    });
+
+    if (missingTaxIds.length > 0) hasChanges = true;
+
+    const projectPlatMap =
+      draftProject.projectPlatMap?.file || !publishedProject.projectPlatMap
+        ? draftProject.projectPlatMap
+        : publishedProject.projectPlatMap;
+    if (projectPlatMap !== draftProject.projectPlatMap) hasChanges = true;
+
+    return {
+      ...draftProject,
+      taxIds: [...mergedTaxIds, ...missingTaxIds],
+      projectPlatMap,
+    };
+  });
+
+  const draftProjectNames = new Set(mergedProjects.map((project) => project.projectName.trim().toLowerCase()));
+  const importsToAdd = publishedProjects.filter((project) => {
+    const projectName = project.projectName.trim();
+    return (
+      PUBLISHED_IMPORT_PROJECT_NAMES.includes(projectName) &&
+      !draftProjectNames.has(projectName.toLowerCase())
+    );
+  });
+
+  if (importsToAdd.length > 0) hasChanges = true;
+  if (!hasChanges) return draftProjects;
+  return [...mergedProjects, ...importsToAdd].sort((a, b) => a.projectName.localeCompare(b.projectName));
+}
+
+function splitCombinedWesternMortgageProjects(
+  projects: ProjectPoint[],
+  publishedProjects: ProjectPoint[] | null,
+) {
+  const publishedWesternProjects = (publishedProjects ?? []).filter(
+    (project) => isWesternMortgageProject(project.projectName) && project.taxIds.length === 1,
+  );
+  if (publishedWesternProjects.length === 0) return projects;
+
+  const currentWesternProjects = projects.filter((project) => isWesternMortgageProject(project.projectName));
+  if (
+    currentWesternProjects.length === publishedWesternProjects.length &&
+    currentWesternProjects.every((project) => project.taxIds.length === 1) &&
+    hasMatchingTaxIdCounts(currentWesternProjects, publishedWesternProjects)
+  ) {
+    return projects;
+  }
+
+  const draftTaxIdsByTaxId = new Map(
+    currentWesternProjects
+      .flatMap((project) => project.taxIds)
+      .map((taxId) => [normalizeTaxId(taxId.taxId), taxId]),
+  );
+
+  const normalizedWesternProjects = publishedWesternProjects.map((publishedProject) => {
+    const publishedTaxId = publishedProject.taxIds[0];
+    const draftTaxId = draftTaxIdsByTaxId.get(normalizeTaxId(publishedTaxId?.taxId ?? ''));
+    return {
+      ...publishedProject,
+      taxIds: [
+        {
+          ...publishedTaxId,
+          ...(draftTaxId ?? {}),
+          owner: draftTaxId?.owner || publishedTaxId?.owner || '',
+          accountUrl: draftTaxId?.accountUrl || publishedTaxId?.accountUrl || '',
+          platImage: draftTaxId?.platImage || publishedTaxId?.platImage || '',
+        },
+      ],
+    };
+  });
+
+  return [
+    ...projects.filter((project) => !isWesternMortgageProject(project.projectName)),
+    ...normalizedWesternProjects,
+  ].sort((a, b) => a.projectName.localeCompare(b.projectName));
+}
+
+function normalizeProjectPlatMapImports(
+  projects: ProjectPoint[],
+  publishedProjects: ProjectPoint[] | null,
+) {
+  if (!publishedProjects) return projects;
+
+  const publishedByProjectName = new Map(
+    publishedProjects.map((project) => [normalizeProjectName(project.projectName), project]),
+  );
+
+  return projects.map((project) => {
+    const publishedProject = publishedByProjectName.get(normalizeProjectName(project.projectName));
+    if (!publishedProject?.projectPlatMap?.file) return project;
+
+    if (!project.projectPlatMap?.file || hasKnownMissingPlatMapFile(project.projectPlatMap.file)) {
+      return {
+        ...project,
+        projectPlatMap: publishedProject.projectPlatMap,
+      };
+    }
+
+    return project;
+  });
+}
+
+function hasKnownMissingPlatMapFile(file: string) {
+  return ['Legacy Phase 1.png', 'Legacy Phase 2.png'].includes(file.trim());
+}
+
+function normalizeTaxIdPlatImageImports(
+  projects: ProjectPoint[],
+  publishedProjects: ProjectPoint[] | null,
+) {
+  if (!publishedProjects) return projects;
+
+  const publishedTaxImageByKey = new Map<string, string>();
+  publishedProjects.forEach((project) => {
+    project.taxIds.forEach((taxId) => {
+      if (!taxId.platImage) return;
+      publishedTaxImageByKey.set(taxImageKey(project.projectName, taxId.taxId), taxId.platImage);
+      publishedTaxImageByKey.set(taxImageKey('', taxId.taxId), taxId.platImage);
+    });
+  });
+
+  return projects.map((project) => ({
+    ...project,
+    taxIds: project.taxIds.map((taxId) => {
+      if (taxId.platImage) return taxId;
+
+      const publishedPlatImage =
+        publishedTaxImageByKey.get(taxImageKey(project.projectName, taxId.taxId)) ??
+        publishedTaxImageByKey.get(taxImageKey('', taxId.taxId));
+
+      return publishedPlatImage ? { ...taxId, platImage: publishedPlatImage } : taxId;
+    }),
+  }));
+}
+
+function taxImageKey(projectName: string, taxId: string) {
+  return `${normalizeProjectName(projectName)}|${normalizeTaxId(taxId)}`;
+}
+
+function hasMatchingTaxIdCounts(projects: ProjectPoint[], otherProjects: ProjectPoint[]) {
+  const counts = taxIdCountMap(projects);
+  const otherCounts = taxIdCountMap(otherProjects);
+  if (counts.size !== otherCounts.size) return false;
+
+  return [...counts].every(([taxId, count]) => otherCounts.get(taxId) === count);
+}
+
+function taxIdCountMap(projects: ProjectPoint[]) {
+  const counts = new Map<string, number>();
+  projects.forEach((project) => {
+    project.taxIds.forEach((taxId) => {
+      const normalizedTaxId = normalizeTaxId(taxId.taxId);
+      counts.set(normalizedTaxId, (counts.get(normalizedTaxId) ?? 0) + 1);
+    });
+  });
+  return counts;
+}
+
+function loadFirstStoredProjectList(keys: string[]) {
+  for (const key of keys) {
+    const saved = localStorage.getItem(key);
+    if (!saved) continue;
+    const projects = parseProjectBackup(saved);
+    if (projects) return projects;
+  }
+  return null;
+}
+
 function loadBackups() {
   try {
-    const saved = localStorage.getItem(BACKUP_KEY);
-    if (!saved) return [];
+    return [BACKUP_KEY, ...PREVIOUS_BACKUP_KEYS]
+      .flatMap((key) => {
+        const saved = localStorage.getItem(key);
+        if (!saved) return [];
 
-    const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) return [];
+        const parsed = JSON.parse(saved);
+        if (!Array.isArray(parsed)) return [];
 
-    return parsed.filter(isDotBackup).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+        return parsed.filter(isProjectBackup);
+      })
+      .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   } catch {
     return [];
   }
 }
 
-function parseDotBackup(value: string) {
+function parseProjectBackup(value: string) {
   const parsed = JSON.parse(value);
-  if (isDotList(parsed)) return parsed;
-  if (isDotBackup(parsed)) return parsed.dots;
+  if (isProjectList(parsed)) return parsed;
+  if (isProjectBackup(parsed)) return parsed.projects;
   return null;
 }
 
-function isDotBackup(value: unknown): value is DotBackup {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<DotBackup>;
-  return candidate.version === 1 && typeof candidate.savedAt === 'string' && isDotList(candidate.dots);
+function parseLegacyDotBackup(value: string) {
+  const parsed = JSON.parse(value);
+  if (isLegacyDotList(parsed)) return parsed;
+  if (
+    parsed &&
+    typeof parsed === 'object' &&
+    (parsed as { version?: unknown }).version === 1 &&
+    isLegacyDotList((parsed as { dots?: unknown }).dots)
+  ) {
+    return (parsed as { dots: LegacyMapDot[] }).dots;
+  }
+  return null;
 }
 
-function isDotList(value: unknown): value is MapDot[] {
+function convertDotsToProjects(dots: LegacyMapDot[]): ProjectPoint[] {
+  const groups = new Map<string, LegacyMapDot[]>();
+
+  dots.forEach((dot) => {
+    const projectName = normalizeProjectName(dot.projectName);
+    const key =
+      isWesternMortgageProject(dot.projectName)
+        ? `${projectName}-${dot.id}`
+        : (dot.projectName || dot.parcelNumber || dot.id).trim().toLowerCase();
+    groups.set(key, [...(groups.get(key) ?? []), dot]);
+  });
+
+  return [...groups.values()].map((group, index) => {
+    const first = group[0];
+    const projectName = first.projectName || first.parcelNumber || `Project ${index + 1}`;
+    const x = group.reduce((total, dot) => total + dot.x, 0) / group.length;
+    const y = group.reduce((total, dot) => total + dot.y, 0) / group.length;
+    const taxIds = group
+      .filter((dot) => dot.parcelNumber || dot.siteUrl || dot.shortDetails)
+      .map((dot, taxIndex) => ({
+        id: `tax-${first.id}-${taxIndex}`,
+        taxId: dot.parcelNumber,
+        label: '',
+        owner: dot.shortDetails,
+        accountUrl: dot.siteUrl,
+      }));
+
+    return {
+      id: `project-${index + 1}-${slugify(projectName)}`,
+      projectName,
+      shortDetails: summarizeGroup(group),
+      x,
+      y,
+      color: first.color || '#000000',
+      taxIds,
+      projectPlatMap: createEmptyProjectPdf(),
+    };
+  });
+}
+
+function hasCombinedWesternMortgageProject(projects: ProjectPoint[]) {
+  return projects.some((project) => isWesternMortgageProject(project.projectName) && project.taxIds.length > 1);
+}
+
+function isWesternMortgageProject(projectName: string) {
+  return normalizeProjectName(projectName).includes('western mortgage');
+}
+
+function normalizeProjectName(projectName: string) {
+  return projectName.trim().toLowerCase();
+}
+
+function normalizeTaxId(taxId: string) {
+  return taxId.trim().toLowerCase();
+}
+
+function summarizeGroup(group: LegacyMapDot[]) {
+  const details = uniqueValues(group.map((dot) => dot.shortDetails.trim()).filter(Boolean));
+  if (details.length === 0) return '';
+  if (details.length === 1) return details[0];
+  return details.slice(0, 3).join(' · ');
+}
+
+function uniqueValues(values: string[]) {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 42);
+}
+
+function isProjectBackup(value: unknown): value is ProjectBackup {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<ProjectBackup>;
+  return (
+    candidate.version === 2 &&
+    candidate.dataRevision === DATA_REVISION &&
+    typeof candidate.savedAt === 'string' &&
+    isProjectList(candidate.projects)
+  );
+}
+
+function isProjectList(value: unknown): value is ProjectPoint[] {
+  if (!Array.isArray(value) || value.length === 0) return false;
+
+  return value.every((project) => {
+    if (!project || typeof project !== 'object') return false;
+    const candidate = project as Partial<ProjectPoint>;
+    return (
+      typeof candidate.id === 'string' &&
+      typeof candidate.projectName === 'string' &&
+      typeof candidate.shortDetails === 'string' &&
+      typeof candidate.color === 'string' &&
+      typeof candidate.x === 'number' &&
+      typeof candidate.y === 'number' &&
+      Array.isArray(candidate.taxIds) &&
+      candidate.taxIds.every(isProjectAccount) &&
+      (candidate.projectPlatMap === undefined || isProjectPlatMap(candidate.projectPlatMap))
+    );
+  });
+}
+
+function isProjectAccount(value: unknown): value is ProjectAccount {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<ProjectAccount>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.taxId === 'string' &&
+    typeof candidate.label === 'string' &&
+    typeof candidate.owner === 'string' &&
+    typeof candidate.accountUrl === 'string' &&
+    (candidate.platImage === undefined || typeof candidate.platImage === 'string')
+  );
+}
+
+function isProjectPlatMap(value: unknown): value is ProjectPlatMap {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<ProjectPlatMap>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.title === 'string' &&
+    typeof candidate.file === 'string' &&
+    (candidate.type === 'image' || candidate.type === 'pdf')
+  );
+}
+
+function isLegacyDotList(value: unknown): value is LegacyMapDot[] {
   if (!Array.isArray(value) || value.length === 0) return false;
 
   return value.every((dot) => {
     if (!dot || typeof dot !== 'object') return false;
-    const candidate = dot as Partial<MapDot>;
+    const candidate = dot as Partial<LegacyMapDot>;
     return (
       typeof candidate.id === 'string' &&
       typeof candidate.parcelNumber === 'string' &&
@@ -714,4 +1390,6 @@ function isDotList(value: unknown): value is MapDot[] {
   });
 }
 
-createRoot(document.getElementById('root')!).render(<App />);
+const rootElement = document.getElementById('root')!;
+window.pidPlatMapRoot = window.pidPlatMapRoot ?? createRoot(rootElement);
+window.pidPlatMapRoot.render(<App />);
