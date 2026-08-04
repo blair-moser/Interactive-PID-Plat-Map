@@ -119,6 +119,13 @@ button {
   box-shadow: 0 10px 20px rgb(15 23 42 / 0.12);
 }
 
+.deploy-copy-button {
+  border-color: rgb(15 23 42 / 0.18);
+  background: white;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
 .hero-actions {
   display: grid;
   justify-items: end;

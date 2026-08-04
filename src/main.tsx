@@ -282,6 +282,18 @@ function App() {
     });
   }
 
+  async function copyDeployJson() {
+    const deployProjects = prepareProjectsForSave(projects);
+    const deployJson = JSON.stringify(deployProjects, null, 2);
+
+    try {
+      await navigator.clipboard.writeText(deployJson);
+      setSaveMessage(`Copied ${deployProjects.length} deploy-ready projects`);
+    } catch {
+      setSaveMessage('Could not copy deploy JSON. Use the browser console fallback.');
+    }
+  }
+
   function beginProjectDrag(event: React.PointerEvent<HTMLButtonElement>, project: ProjectPoint) {
     if (isClientView || !mapRef.current) return;
 
@@ -401,6 +413,9 @@ function App() {
             <a className="client-view-link" href={import.meta.env.BASE_URL}>
               Open client view
             </a>
+            <button type="button" className="client-view-link deploy-copy-button" onClick={copyDeployJson}>
+              Copy deploy JSON
+            </button>
             <p className="save-message">{saveMessage}</p>
           </div>
         </section>
@@ -890,10 +905,7 @@ function createBackup(projects: ProjectPoint[]): ProjectBackup {
 }
 
 function saveProjects(projects: ProjectPoint[]) {
-  const sortedProjects = projects.map((project) => ({
-    ...project,
-    taxIds: sortTaxIds(project.taxIds),
-  }));
+  const sortedProjects = prepareProjectsForSave(projects);
   const backup = createBackup(sortedProjects);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(backup));
 
@@ -905,6 +917,13 @@ function saveProjects(projects: ProjectPoint[]) {
       : [backup, ...previousBackups];
 
   localStorage.setItem(BACKUP_KEY, JSON.stringify(backups.slice(0, 50)));
+}
+
+function prepareProjectsForSave(projects: ProjectPoint[]) {
+  return projects.map((project) => ({
+    ...project,
+    taxIds: sortTaxIds(project.taxIds),
+  }));
 }
 
 function sortTaxIds(taxIds: ProjectAccount[]) {
