@@ -9,18 +9,6 @@ declare global {
   }
 }
 
-type LegacyMapDot = {
-  id: string;
-  parcelNumber: string;
-  projectName: string;
-  shortDetails: string;
-  x: number;
-  y: number;
-  color: string;
-  platImage: string;
-  siteUrl: string;
-};
-
 type ProjectAccount = {
   id: string;
   taxId: string;
@@ -71,9 +59,7 @@ const PUBLISHED_IMPORT_PROJECT_NAMES = [
   'Peach Spring Estate Phase 1',
   'Peach Spring Estate Phase 2',
 ];
-const LEGACY_STORAGE_KEY = 'pid-plat-map-dots';
 const PROJECTS_FILE_PATH = `${import.meta.env.BASE_URL}projects.json`;
-const LEGACY_DOTS_FILE_PATH = `${import.meta.env.BASE_URL}dots.json`;
 const DEFAULT_MAP_IMAGE = `${import.meta.env.BASE_URL}pid-no-1-map.png`;
 
 const starterProjects: ProjectPoint[] = [
@@ -990,9 +976,6 @@ async function loadPublishedProjects() {
   const projects = await fetchJson(PROJECTS_FILE_PATH);
   if (isProjectList(projects)) return projects;
 
-  const legacyDots = await fetchJson(LEGACY_DOTS_FILE_PATH);
-  if (isLegacyDotList(legacyDots)) return convertDotsToProjects(legacyDots);
-
   return null;
 }
 
@@ -1244,64 +1227,6 @@ function parseProjectBackup(value: string) {
   return null;
 }
 
-function parseLegacyDotBackup(value: string) {
-  const parsed = JSON.parse(value);
-  if (isLegacyDotList(parsed)) return parsed;
-  if (
-    parsed &&
-    typeof parsed === 'object' &&
-    (parsed as { version?: unknown }).version === 1 &&
-    isLegacyDotList((parsed as { dots?: unknown }).dots)
-  ) {
-    return (parsed as { dots: LegacyMapDot[] }).dots;
-  }
-  return null;
-}
-
-function convertDotsToProjects(dots: LegacyMapDot[]): ProjectPoint[] {
-  const groups = new Map<string, LegacyMapDot[]>();
-
-  dots.forEach((dot) => {
-    const projectName = normalizeProjectName(dot.projectName);
-    const key =
-      isWesternMortgageProject(dot.projectName)
-        ? `${projectName}-${dot.id}`
-        : (dot.projectName || dot.parcelNumber || dot.id).trim().toLowerCase();
-    groups.set(key, [...(groups.get(key) ?? []), dot]);
-  });
-
-  return [...groups.values()].map((group, index) => {
-    const first = group[0];
-    const projectName = first.projectName || first.parcelNumber || `Project ${index + 1}`;
-    const x = group.reduce((total, dot) => total + dot.x, 0) / group.length;
-    const y = group.reduce((total, dot) => total + dot.y, 0) / group.length;
-    const taxIds = group
-      .filter((dot) => dot.parcelNumber || dot.siteUrl || dot.shortDetails)
-      .map((dot, taxIndex) => ({
-        id: `tax-${first.id}-${taxIndex}`,
-        taxId: dot.parcelNumber,
-        label: '',
-        owner: dot.shortDetails,
-        accountUrl: dot.siteUrl,
-      }));
-
-    return {
-      id: `project-${index + 1}-${slugify(projectName)}`,
-      projectName,
-      shortDetails: summarizeGroup(group),
-      x,
-      y,
-      color: first.color || '#000000',
-      taxIds,
-      projectPlatMap: createEmptyProjectPdf(),
-    };
-  });
-}
-
-function hasCombinedWesternMortgageProject(projects: ProjectPoint[]) {
-  return projects.some((project) => isWesternMortgageProject(project.projectName) && project.taxIds.length > 1);
-}
-
 function isWesternMortgageProject(projectName: string) {
   return normalizeProjectName(projectName).includes('western mortgage');
 }
@@ -1312,25 +1237,6 @@ function normalizeProjectName(projectName: string) {
 
 function normalizeTaxId(taxId: string) {
   return taxId.trim().toLowerCase();
-}
-
-function summarizeGroup(group: LegacyMapDot[]) {
-  const details = uniqueValues(group.map((dot) => dot.shortDetails.trim()).filter(Boolean));
-  if (details.length === 0) return '';
-  if (details.length === 1) return details[0];
-  return details.slice(0, 3).join(' · ');
-}
-
-function uniqueValues(values: string[]) {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 42);
 }
 
 function isProjectBackup(value: unknown): value is ProjectBackup {
@@ -1386,26 +1292,6 @@ function isProjectPlatMap(value: unknown): value is ProjectPlatMap {
     typeof candidate.file === 'string' &&
     (candidate.type === 'image' || candidate.type === 'pdf')
   );
-}
-
-function isLegacyDotList(value: unknown): value is LegacyMapDot[] {
-  if (!Array.isArray(value) || value.length === 0) return false;
-
-  return value.every((dot) => {
-    if (!dot || typeof dot !== 'object') return false;
-    const candidate = dot as Partial<LegacyMapDot>;
-    return (
-      typeof candidate.id === 'string' &&
-      typeof candidate.parcelNumber === 'string' &&
-      typeof candidate.projectName === 'string' &&
-      typeof candidate.shortDetails === 'string' &&
-      typeof candidate.color === 'string' &&
-      typeof candidate.platImage === 'string' &&
-      typeof candidate.siteUrl === 'string' &&
-      typeof candidate.x === 'number' &&
-      typeof candidate.y === 'number'
-    );
-  });
 }
 
 const rootElement = document.getElementById('root')!;
