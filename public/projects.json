@@ -13,14 +13,14 @@
         "label": "",
         "owner": "BASH HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1227470&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-11-1111-GS1.png"
+        "platImage": "optimized/H-4-2-11-1111-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
       "id": "project-pdf-1-adventus-phase-1",
       "title": "",
-      "file": "Adventus Phase 1 Plat.jpg",
-      "type": "pdf"
+      "file": "optimized/Adventus Phase 1 Plat-project.webp",
+      "type": "image"
     }
   },
   {
@@ -37,7 +37,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0892284&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-11-2112-GS1.png"
+        "platImage": "optimized/H-4-2-11-2112-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1207-gs1-2",
@@ -45,7 +45,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127752&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1207-GS1.png"
+        "platImage": "optimized/H-4-2-12-1207-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -69,14 +69,14 @@
         "label": "",
         "owner": "SH RENTAL HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1086547&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-11-21121-GS1.png"
+        "platImage": "optimized/H-4-2-11-21121-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
       "id": "project-pdf-3-bash-facility",
       "title": "",
-      "file": "BASH Facility Plat.jpg",
-      "type": "pdf"
+      "file": "optimized/BASH Facility Plat-project.webp",
+      "type": "image"
     }
   },
   {
@@ -93,7 +93,7 @@
         "label": "",
         "owner": "SIMPLY LAND LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1175333&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-322-GS1.png"
+        "platImage": "optimized/H-4-2-1-322-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-324-gs1-2",
@@ -101,7 +101,7 @@
         "label": "",
         "owner": "SIMPLY LAND LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1175326&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-324-GS1.png"
+        "platImage": "optimized/H-4-2-1-324-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -125,7 +125,7 @@
         "label": "",
         "owner": "WESTERN MORTGAGE & REALTY COMPANY",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127769&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1208-GS1.png"
+        "platImage": "optimized/H-4-2-12-1208-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1209-gs1-2",
@@ -133,7 +133,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127776&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1209-GS1.png"
+        "platImage": "optimized/H-4-2-12-1209-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1214-gs1",
@@ -237,7 +237,7 @@
         "label": "",
         "owner": "SENDERO HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1246071&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-200-GS1.png"
+        "platImage": "optimized/H-4-2-1-200-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-201-gs1-6",
@@ -245,7 +245,7 @@
         "label": "",
         "owner": "SENDERO HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1246088&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-201-GS1.png"
+        "platImage": "optimized/H-4-2-1-201-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-202-gs1-3",
@@ -253,7 +253,7 @@
         "label": "",
         "owner": "FUSION3 LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1250940&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-202-GS1.png"
+        "platImage": "optimized/H-4-2-1-202-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-203-gs1-5",
@@ -261,7 +261,7 @@
         "label": "",
         "owner": "FUSION3 LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1295206&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-203-GS1.png"
+        "platImage": "optimized/H-4-2-1-203-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-1112-gs1-1",
@@ -269,7 +269,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127721&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-1112-GS1.png"
+        "platImage": "optimized/H-4-2-1-1112-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-11112-gs1-1",
@@ -277,7 +277,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127714&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-11112-GS1.png"
+        "platImage": "optimized/H-4-2-1-11112-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -301,7 +301,7 @@
         "label": "",
         "owner": "CURTIS JASON & HOLLY",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0868456&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-340-GS1.png"
+        "platImage": "optimized/H-4-2-1-340-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -325,7 +325,7 @@
         "label": "",
         "owner": "DIXIE-ESCALANTE RURAL ELECTRIC ASSOCIATION INC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1284381&submit=Public+Login&guest=true",
-        "platImage": "H-STFE-1-OUTLOT1-GS1.png"
+        "platImage": "optimized/H-STFE-1-OUTLOT1-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -349,7 +349,7 @@
         "label": "",
         "owner": "WESTERN MORTGAGE & REALTY COMPANY",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127769&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1208-GS1.png"
+        "platImage": "optimized/H-4-2-12-1208-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -373,7 +373,7 @@
         "label": "",
         "owner": "GATEWAY RESORT AT SAND HOLLOW LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0984954&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-234-GS1.png"
+        "platImage": "optimized/H-4-2-1-234-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-235-gs1-8",
@@ -381,7 +381,7 @@
         "label": "",
         "owner": "SH GATEWAY 2 LLC, ET AL",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1126348&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-235-GS1.png"
+        "platImage": "optimized/H-4-2-1-235-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-236-gs1-7",
@@ -389,7 +389,7 @@
         "label": "",
         "owner": "SH GATEWAY 2 LLC, ET AL",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1126355&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-236-GS1.png"
+        "platImage": "optimized/H-4-2-1-236-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-237-gs1-2",
@@ -397,7 +397,7 @@
         "label": "",
         "owner": "SH GATEWAY 2 LLC, ET AL",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1126362&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-237-GS1.png"
+        "platImage": "optimized/H-4-2-1-237-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-1108-gs1-1",
@@ -405,7 +405,7 @@
         "label": "",
         "owner": "SMF EASEMENT LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1005737&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-1108-GS1.png"
+        "platImage": "optimized/H-4-2-1-1108-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-1300-gs1-9",
@@ -413,7 +413,7 @@
         "label": "",
         "owner": "BASH HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1227494&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-1300-GS1.png"
+        "platImage": "optimized/H-4-2-1-1300-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-1302-gs1-4",
@@ -421,7 +421,7 @@
         "label": "",
         "owner": "BASH HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1227502&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-1302-GS1.png"
+        "platImage": "optimized/H-4-2-1-1302-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-1-3100-gs1-5",
@@ -429,7 +429,7 @@
         "label": "",
         "owner": "BASH HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1227487&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-3100-GS1.png"
+        "platImage": "optimized/H-4-2-1-3100-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-11-125-gs1-6",
@@ -437,14 +437,14 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0844735&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-11-125-GS1.png"
+        "platImage": "optimized/H-4-2-11-125-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
       "id": "project-pdf-10-gateway-resort",
       "title": "",
-      "file": "Gateway Resort Plat.jpg",
-      "type": "pdf"
+      "file": "optimized/Gateway Resort Plat-project.webp",
+      "type": "image"
     }
   },
   {
@@ -461,7 +461,7 @@
         "label": "",
         "owner": "KSCO INVESTMENTS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1216555&submit=Public+Login&guest=true",
-        "platImage": "H-GIP-1-GS1.png"
+        "platImage": "optimized/H-GIP-1-GS1-tax.webp"
       },
       {
         "id": "tax-h-gip-2-gs1-2",
@@ -469,7 +469,7 @@
         "label": "",
         "owner": "KSCO INVESTMENTS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1216562&submit=Public+Login&guest=true",
-        "platImage": "H-GIP-2-GS1.png"
+        "platImage": "optimized/H-GIP-2-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -493,7 +493,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127714&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-11112-GS1.png"
+        "platImage": "optimized/H-4-2-1-11112-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-403-gs1",
@@ -581,7 +581,7 @@
         "label": "",
         "owner": "BASH HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1114242&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1103-GS1.png"
+        "platImage": "optimized/H-4-2-12-1103-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1104-gs1-5",
@@ -589,7 +589,7 @@
         "label": "",
         "owner": "BASH HOLDINGS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1220602&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1104-GS1.png"
+        "platImage": "optimized/H-4-2-12-1104-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1207-gs1-2",
@@ -597,7 +597,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127752&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1207-GS1.png"
+        "platImage": "optimized/H-4-2-12-1207-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1208-gs1-3",
@@ -605,14 +605,14 @@
         "label": "",
         "owner": "WESTERN MORTGAGE & REALTY COMPANY",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127769&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1208-GS1.png"
+        "platImage": "optimized/H-4-2-12-1208-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
       "id": "project-pdf-12-legacy-at-sand-hollow-other",
       "title": "",
-      "file": "Legacy Other Plat.jpg",
-      "type": "pdf"
+      "file": "optimized/Legacy Other Plat-project.webp",
+      "type": "image"
     }
   },
   {
@@ -1059,7 +1059,7 @@
     "projectPlatMap": {
       "id": "project-plat-legacy-at-sand-hollow-phase-1",
       "title": "Legacy at Sand Hollow Phase 1",
-      "file": "Legacy Phase 1 Plat.jpg",
+      "file": "optimized/Legacy Phase 1 Plat-project.webp",
       "type": "image"
     }
   },
@@ -1267,7 +1267,7 @@
     "projectPlatMap": {
       "id": "project-plat-legacy-at-sand-hollow-phase-2",
       "title": "Legacy at Sand Hollow Phase 2",
-      "file": "Legacy Phase 2 Plat.jpg",
+      "file": "optimized/Legacy Phase 2 Plat-project.webp",
       "type": "image"
     }
   },
@@ -1285,14 +1285,14 @@
         "label": "",
         "owner": "MAVERIK INC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1293161&submit=Public+Login&guest=true",
-        "platImage": "H-GASH-3TO5-4-GS1.png"
+        "platImage": "optimized/H-GASH-3TO5-4-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
       "id": "project-pdf-13-maverik",
       "title": "",
-      "file": "Maverik Plat.jpg",
-      "type": "pdf"
+      "file": "optimized/Maverik Plat-project.webp",
+      "type": "image"
     }
   },
   {
@@ -1309,7 +1309,7 @@
         "label": "",
         "owner": "OBSIDIAN RESORTS PROPERTY LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1092614&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1113-GS1.png"
+        "platImage": "optimized/H-4-2-12-1113-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -1579,7 +1579,7 @@
     "projectPlatMap": {
       "id": "project-plat-peach-spring-estate-phase-1",
       "title": "Peach Spring Estate Phase 1",
-      "file": "Peach Springs Estates Phase 1.png",
+      "file": "optimized/Peach Springs Estates Phase 1-project.webp",
       "type": "image"
     }
   },
@@ -1875,7 +1875,7 @@
     "projectPlatMap": {
       "id": "project-plat-peach-spring-estate-phase-2",
       "title": "Peach Spring Estate Phase 2",
-      "file": "Peach Springs Estates Phase 2.png",
+      "file": "optimized/Peach Springs Estates Phase 2-project.webp",
       "type": "image"
     }
   },
@@ -1893,7 +1893,7 @@
         "label": "",
         "owner": "HERITAGE LAND DEVELOPMENT LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1152103&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-402-GS1.png"
+        "platImage": "optimized/H-4-2-12-402-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2051,7 +2051,7 @@
     "projectPlatMap": {
       "id": "project-plat-red-slate-estates-phase-1",
       "title": "Red Slate Estates Phase 1",
-      "file": "Red Slate Estates.png",
+      "file": "optimized/Red Slate Estates-project.webp",
       "type": "image"
     }
   },
@@ -2203,7 +2203,7 @@
     "projectPlatMap": {
       "id": "project-plat-red-slate-estates-phase-2",
       "title": "Red Slate Estates Phase 2",
-      "file": "Red Slate Estates.png",
+      "file": "optimized/Red Slate Estates-project.webp",
       "type": "image"
     }
   },
@@ -2507,7 +2507,7 @@
     "projectPlatMap": {
       "id": "project-plat-red-slate-estates-phase-3",
       "title": "Red Slate Estates Phase 3",
-      "file": "Red Slate Estates.png",
+      "file": "optimized/Red Slate Estates-project.webp",
       "type": "image"
     }
   },
@@ -2525,7 +2525,7 @@
         "label": "",
         "owner": "HD JEWELL LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1293325&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-141-GS1.png"
+        "platImage": "optimized/H-4-2-1-141-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2549,7 +2549,7 @@
         "label": "",
         "owner": "WESTERN MORTGAGE & REALTY COMPANY",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1284398&submit=Public+Login&guest=true",
-        "platImage": "H-STFE-1-OUTLOT2-GS1.png"
+        "platImage": "optimized/H-STFE-1-OUTLOT2-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2573,7 +2573,7 @@
         "label": "",
         "owner": "WESTERN MORTGAGE & REALTY COMPANY",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127769&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1208-GS1.png"
+        "platImage": "optimized/H-4-2-12-1208-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-1211-gs1-2",
@@ -2581,7 +2581,7 @@
         "label": "",
         "owner": "SITN LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1227658&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-1211-GS1.png"
+        "platImage": "optimized/H-4-2-12-1211-GS1-tax.webp"
       },
       {
         "id": "tax-h-4-2-12-4201-gs1-1",
@@ -2589,7 +2589,7 @@
         "label": "",
         "owner": "SITN LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1267250&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-12-4201-GS1.png"
+        "platImage": "optimized/H-4-2-12-4201-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2851,7 +2851,7 @@
     "projectPlatMap": {
       "id": "project-plat-strawberry-fields-estate-phase-1",
       "title": "Strawberry Fields Estate Phase 1",
-      "file": "Strawberry Fields Estates Phase 1.png",
+      "file": "optimized/Strawberry Fields Estates Phase 1-project.webp",
       "type": "image"
     }
   },
@@ -2869,7 +2869,7 @@
         "label": "",
         "owner": "PINE MOUNTAIN REAL ESTATE LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1123394&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-300-GS1.png"
+        "platImage": "optimized/H-4-2-1-300-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2893,7 +2893,7 @@
         "label": "",
         "owner": "DUCKBERG LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1216579&submit=Public+Login&guest=true",
-        "platImage": "H-GIP-3-GS1.png"
+        "platImage": "optimized/H-GIP-3-GS1-tax.webp"
       },
       {
         "id": "tax-h-gip-4-gs1-2",
@@ -2901,7 +2901,7 @@
         "label": "",
         "owner": "DUCKBERG LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1216586&submit=Public+Login&guest=true",
-        "platImage": "H-GIP-4-GS1.png"
+        "platImage": "optimized/H-GIP-4-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2925,7 +2925,7 @@
         "label": "",
         "owner": "BENZER DEVELOPMENT SOLUTIONS LLC",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1276009&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-238-GS1.png"
+        "platImage": "optimized/H-4-2-1-238-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2949,7 +2949,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127714&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-11112-GS1.png"
+        "platImage": "optimized/H-4-2-1-11112-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2973,7 +2973,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127714&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-11112-GS1.png"
+        "platImage": "optimized/H-4-2-1-11112-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -2997,7 +2997,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1293178&submit=Public+Login&guest=true",
-        "platImage": "H-GASH-3TO5-5-GS1.png"
+        "platImage": "optimized/H-GASH-3TO5-5-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3021,7 +3021,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0895151&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-1123-GS1.png"
+        "platImage": "optimized/H-4-2-1-1123-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3045,7 +3045,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1293154&submit=Public+Login&guest=true",
-        "platImage": "H-GASH-3TO5-3-GS1.png"
+        "platImage": "optimized/H-GASH-3TO5-3-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3069,7 +3069,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0881592&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-4203-GS1.png"
+        "platImage": "optimized/H-4-2-1-4203-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3093,7 +3093,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO, ET AL",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1293147&submit=Public+Login&guest=true",
-        "platImage": "H-GASH-2-2-GS1.png"
+        "platImage": "optimized/H-GASH-2-2-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3117,7 +3117,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1088240&submit=Public+Login&guest=true",
-        "platImage": "H-3-2-6-431-GS1.png"
+        "platImage": "optimized/H-3-2-6-431-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3141,7 +3141,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127745&submit=Public+Login&guest=true",
-        "platImage": "H-3-2-6-1410-GS1.png"
+        "platImage": "optimized/H-3-2-6-1410-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3165,7 +3165,7 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=1127721&submit=Public+Login&guest=true",
-        "platImage": "H-4-2-1-1112-GS1.png"
+        "platImage": "optimized/H-4-2-1-1112-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
@@ -3189,14 +3189,14 @@
         "label": "",
         "owner": "WESTERN MTG & REALTY CO",
         "accountUrl": "https://eweb.washco.utah.gov:8443/recorder/taxweb/account.jsp?accountNum=0881585&submit=Public+Login&guest=true",
-        "platImage": "H-3-2-6-1406-GS1.png"
+        "platImage": "optimized/H-3-2-6-1406-GS1-tax.webp"
       }
     ],
     "projectPlatMap": {
       "id": "project-pdf-32-zion-regional-medical-center",
       "title": "",
-      "file": "Zion Regional Medical Center Plat.jpg",
-      "type": "pdf"
+      "file": "optimized/Zion Regional Medical Center Plat-project.webp",
+      "type": "image"
     }
   }
 ]

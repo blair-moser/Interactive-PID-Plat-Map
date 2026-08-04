@@ -522,7 +522,13 @@ function App() {
               className={`map-frame ${!isClientView ? 'is-calibrating' : ''}`}
               style={{ '--zoom': zoom } as React.CSSProperties}
             >
-              <img src={DEFAULT_MAP_IMAGE} alt="PID No. 1 plat map page 2" draggable={false} />
+              <img
+                src={DEFAULT_MAP_IMAGE}
+                alt="PID No. 1 plat map page 2"
+                draggable={false}
+                decoding="async"
+                fetchPriority="high"
+              />
               <div className="dot-layer">
                 {projects.map((project) => (
                   <button
@@ -585,6 +591,8 @@ function App() {
                             className="project-plat-preview"
                             src={resolveAssetPath(activeProjectPlatMap.file)}
                             alt={`${activeProjectPlatMap.title || activeProject.projectName} plat map`}
+                            loading="lazy"
+                            decoding="async"
                           />
                         </a>
                       ) : (
@@ -618,6 +626,8 @@ function App() {
                                   className="compact-plat-preview"
                                   src={resolveAssetPath(getTaxIdPlatImage(taxId)?.file ?? '')}
                                   alt={`${taxId.taxId} plat map`}
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                               )}
                             </div>
