@@ -101,7 +101,6 @@ function App() {
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
     window.location.hash === '#editor' ? 'editor' : 'client',
   );
-  const [locationHash, setLocationHash] = useState(() => window.location.hash);
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [saveMessage, setSaveMessage] = useState('Loaded');
@@ -110,7 +109,6 @@ function App() {
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null;
   const activeProjectPlatMap = activeProject ? getProjectPlatMap(activeProject) : null;
   const isClientView = pageMode === 'client';
-  const isDraftClientPreview = isClientView && locationHash === '#client';
 
   const sortedProjects = useMemo(
     () => [...projects].sort((a, b) => a.projectName.localeCompare(b.projectName)),
@@ -140,7 +138,7 @@ function App() {
   useEffect(() => {
     let cancelled = false;
 
-    if (!isClientView || isDraftClientPreview) {
+    if (!isClientView) {
       const browserProjects = loadBrowserProjects();
       if (browserProjects) {
         loadPublishedProjects()
@@ -157,20 +155,12 @@ function App() {
               publishedProjects,
             );
             setProjects(mergedProjects);
-            setSaveMessage(
-              isDraftClientPreview
-                ? `Previewing ${mergedProjects.length} draft projects`
-                : `Loaded ${mergedProjects.length} saved draft projects`,
-            );
+            setSaveMessage(`Loaded ${mergedProjects.length} saved draft projects`);
           })
           .catch(() => {
             if (cancelled) return;
             setProjects(browserProjects);
-            setSaveMessage(
-              isDraftClientPreview
-                ? `Previewing ${browserProjects.length} draft projects`
-                : `Loaded ${browserProjects.length} saved draft projects`,
-            );
+            setSaveMessage(`Loaded ${browserProjects.length} saved draft projects`);
           })
           .finally(() => {
             if (!cancelled) setCanSaveProjects(!isClientView);
@@ -198,11 +188,10 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [isClientView, isDraftClientPreview]);
+  }, [isClientView]);
 
   useEffect(() => {
     function handleHashChange() {
-      setLocationHash(window.location.hash);
       setPageMode(window.location.hash === '#editor' ? 'editor' : 'client');
       setActiveProjectId(null);
     }
@@ -409,7 +398,7 @@ function App() {
             </p>
           </div>
           <div className="hero-actions">
-            <a className="client-view-link" href="#client" onClick={() => saveProjects(projects)}>
+            <a className="client-view-link" href={import.meta.env.BASE_URL}>
               Open client view
             </a>
             <p className="save-message">{saveMessage}</p>
