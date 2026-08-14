@@ -90,6 +90,7 @@ function App() {
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [saveMessage, setSaveMessage] = useState('Loaded');
+  const [expandedTaxPlatImage, setExpandedTaxPlatImage] = useState<ProjectPlatMap | null>(null);
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null;
@@ -120,6 +121,17 @@ function App() {
       })}`,
     );
   }, [canSaveProjects, projects, isClientView]);
+
+  useEffect(() => {
+    if (!expandedTaxPlatImage) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setExpandedTaxPlatImage(null);
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expandedTaxPlatImage]);
 
   useEffect(() => {
     let cancelled = false;
@@ -598,7 +610,10 @@ function App() {
                     <h3>Tax IDs & Account Overviews</h3>
                     {activeProject.taxIds.length ? (
                       <div className="tax-id-list">
-                        {sortTaxIds(activeProject.taxIds).map((taxId) => (
+                        {sortTaxIds(activeProject.taxIds).map((taxId) => {
+                          const taxIdPlatImage = getTaxIdPlatImage(taxId);
+
+                          return (
                           <article key={taxId.id} className="tax-id-card">
                             <div className="tax-id-copy">
                               <strong>{taxId.taxId || 'Tax ID not assigned'}</strong>
@@ -607,14 +622,21 @@ function App() {
                               )}
                             </div>
                             <div className="tax-id-media">
-                              {getTaxIdPlatImage(taxId) && (
-                                <img
-                                  className="compact-plat-preview"
-                                  src={resolveAssetPath(getTaxIdPlatImage(taxId)?.file ?? '')}
-                                  alt={`${taxId.taxId} plat map`}
-                                  loading="lazy"
-                                  decoding="async"
-                                />
+                              {taxIdPlatImage && (
+                                <button
+                                  type="button"
+                                  className="compact-plat-preview-button"
+                                  onClick={() => setExpandedTaxPlatImage(taxIdPlatImage)}
+                                  aria-label={`Expand ${taxId.taxId || 'Tax ID'} plat map`}
+                                >
+                                  <img
+                                    className="compact-plat-preview"
+                                    src={resolveAssetPath(taxIdPlatImage.file)}
+                                    alt={`${taxId.taxId} plat map`}
+                                    loading="lazy"
+                                    decoding="async"
+                                  />
+                                </button>
                               )}
                             </div>
                             {taxId.accountUrl ? (
@@ -631,13 +653,38 @@ function App() {
                               <div className="empty-detail compact-empty tax-id-account-link">No account link yet.</div>
                             )}
                           </article>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="empty-detail">No tax IDs have been added to this project yet.</div>
                     )}
                   </section>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {expandedTaxPlatImage && (
+            <div
+              className="image-viewer-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${expandedTaxPlatImage.title || 'Tax ID'} plat map preview`}
+              onClick={() => setExpandedTaxPlatImage(null)}
+            >
+              <div className="image-viewer-card" onClick={(event) => event.stopPropagation()}>
+                <div className="image-viewer-header">
+                  <strong>{expandedTaxPlatImage.title || 'Tax ID plat map'}</strong>
+                  <button type="button" onClick={() => setExpandedTaxPlatImage(null)} aria-label="Close expanded plat map">
+                    <X size={18} />
+                  </button>
+                </div>
+                <img
+                  src={resolveAssetPath(expandedTaxPlatImage.file)}
+                  alt={`${expandedTaxPlatImage.title || 'Tax ID'} plat map`}
+                  decoding="async"
+                />
               </div>
             </div>
           )}
