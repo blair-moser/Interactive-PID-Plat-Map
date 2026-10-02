@@ -119,13 +119,6 @@ button {
   box-shadow: 0 10px 20px rgb(15 23 42 / 0.12);
 }
 
-.deploy-copy-button {
-  border-color: rgb(15 23 42 / 0.18);
-  background: white;
-  color: var(--text-main);
-  cursor: pointer;
-}
-
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1490,6 +1483,48 @@ button {
   min-height: auto;
   padding: 11px;
   font-size: 0.82rem;
+}
+
+@media (min-width: 1101px) {
+  html.editor-mode,
+  body.editor-mode {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-shell:not(.client-shell) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-shell:not(.client-shell) > :not(.layout) {
+    flex-shrink: 0;
+  }
+
+  .app-shell:not(.client-shell) > .layout {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .app-shell:not(.client-shell) .dots-sidebar,
+  .app-shell:not(.client-shell) .dots-sidebar > .panel,
+  .app-shell:not(.client-shell) .editor-sidebar,
+  .app-shell:not(.client-shell) .map-card,
+  .app-shell:not(.client-shell) .map-viewport {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .app-shell:not(.client-shell) .map-viewport {
+    container-type: size;
+  }
+
+  .app-shell:not(.client-shell) .map-frame {
+    width: calc(min(100cqw, 100cqh * 3909 / 4104) * var(--zoom, 1));
+  }
 }
 
 @media (max-width: 1100px) {

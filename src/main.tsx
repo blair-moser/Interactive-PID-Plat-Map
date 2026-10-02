@@ -101,6 +101,15 @@ function App() {
   );
 
   useEffect(() => {
+    document.documentElement.classList.toggle('editor-mode', !isClientView);
+    document.body.classList.toggle('editor-mode', !isClientView);
+    return () => {
+      document.documentElement.classList.remove('editor-mode');
+      document.body.classList.remove('editor-mode');
+    };
+  }, [isClientView]);
+
+  useEffect(() => {
     if (selectedProjectId && !projects.some((project) => project.id === selectedProjectId)) {
       setSelectedProjectId(null);
     }
@@ -357,18 +366,6 @@ function App() {
     });
   }
 
-  async function copyDeployJson() {
-    const deployProjects = prepareProjectsForSave(projects);
-    const deployJson = JSON.stringify(deployProjects, null, 2);
-
-    try {
-      await navigator.clipboard.writeText(deployJson);
-      setSaveMessage(`Copied ${deployProjects.length} deploy-ready projects`);
-    } catch {
-      setSaveMessage('Could not copy deploy JSON. Use the browser console fallback.');
-    }
-  }
-
   function beginProjectDrag(event: React.PointerEvent<HTMLButtonElement>, project: ProjectPoint) {
     if (isClientView || !mapRef.current) return;
 
@@ -485,9 +482,6 @@ function App() {
             <a className="client-view-link" href={import.meta.env.BASE_URL} onClick={openClientView}>
               Open client view
             </a>
-            <button type="button" className="client-view-link deploy-copy-button" onClick={copyDeployJson} disabled={isLoadingProjects}>
-              Copy deploy JSON
-            </button>
             <p className="save-message">{saveMessage}</p>
             {needsSignIn && IS_SITE_EDITOR && (
               <a className="client-view-link" href="/signin-with-chatgpt?return_to=%2F%23editor" target="_top">
@@ -614,13 +608,6 @@ function App() {
           </section>
 
           <div className="map-hint">{isClientView ? 'Click a dot or project to inspect it' : 'Drag a dot to position it'}</div>
-          {isClientView && (
-            <div className="map-mini-legend" aria-hidden="true">
-              <span><i className="legend-dot" />Project</span>
-              <span><i className="legend-dot selected" />Selected</span>
-            </div>
-          )}
-
           {expandedTaxPlatImage && (
             <div
               className="image-viewer-overlay"
