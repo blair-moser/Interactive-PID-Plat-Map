@@ -218,6 +218,18 @@ function App() {
     };
   }, [isClientView]);
 
+  useEffect(() => {
+    if (isClientView || !IS_SITE_EDITOR) return;
+    let cancelled = false;
+    fetch(`${SITE_ORIGIN}/api/editor-status`, { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((status) => {
+        if (!cancelled) setNeedsSignIn(!status.signedIn);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [isClientView]);
+
   function publishProjects(snapshot: ProjectPoint[]): Promise<boolean> {
     const prepared = prepareProjectsForSave(snapshot);
     const serialized = JSON.stringify(prepared);

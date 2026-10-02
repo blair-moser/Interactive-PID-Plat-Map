@@ -1,6 +1,7 @@
 const OWNER_EMAIL = 'blair.moser3+1@gmail.com';
 const GITHUB_ORIGIN = 'https://blair-moser.github.io';
 const GITHUB_SITE = `${GITHUB_ORIGIN}/Interactive-PID-Plat-Map`;
+const clientVersion = '__CLIENT_VERSION__';
 const seedProjects = __SEED_PROJECTS__;
 
 function corsHeaders(request) {
@@ -60,6 +61,11 @@ async function readState(env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/editor-status') {
+      if (request.method !== 'GET') return json(request, { error: 'Method not allowed.' }, 405);
+      const email = request.headers.get('oai-authenticated-user-email')?.toLowerCase();
+      return json(request, { signedIn: Boolean(email), canPublish: email === OWNER_EMAIL });
+    }
     if (url.pathname === '/api/projects') {
       if (request.method === 'OPTIONS') {
         if (request.headers.get('Origin') !== GITHUB_ORIGIN) return new Response(null, { status: 403 });
@@ -118,13 +124,15 @@ export default {
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method not allowed', { status: 405 });
     }
-    const upstreamUrl = `${GITHUB_SITE}${url.pathname}${url.search}`;
+    const isDocument = url.pathname === '/' || url.pathname === '/index.html';
+    const upstreamUrl = `${GITHUB_SITE}${url.pathname}${isDocument ? `?v=${clientVersion}` : url.search}`;
     try {
       const upstream = await fetch(upstreamUrl, { method: request.method });
       const headers = new Headers(upstream.headers);
       headers.delete('Content-Encoding');
       headers.delete('Content-Length');
       headers.set('X-Content-Type-Options', 'nosniff');
+      if (isDocument) headers.set('Cache-Control', 'no-store');
       return new Response(request.method === 'HEAD' ? null : upstream.body, { status: upstream.status, headers });
     } catch (error) {
       console.error('Map asset proxy failed', error);

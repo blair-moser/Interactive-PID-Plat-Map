@@ -30,6 +30,9 @@ const initial = await get.json();
 assert.equal(initial.version, 0);
 assert.equal(initial.projects.length, 40);
 
+const access = await worker.fetch(new Request('https://interactive-pid-plat-map.bmoser3.chatgpt.site/api/editor-status'), { DB });
+assert.deepEqual(await access.json(), { signedIn: false, canPublish: false });
+
 const unauthorized = await worker.fetch(new Request(api, {
   method: 'PUT',
   headers: { Origin: new URL(api).origin, 'Content-Type': 'application/json' },
