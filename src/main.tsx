@@ -614,10 +614,12 @@ function App() {
           </section>
 
           <div className="map-hint">{isClientView ? 'Click a dot or project to inspect it' : 'Drag a dot to position it'}</div>
-          <div className="map-mini-legend" aria-hidden="true">
-            <span><i className="legend-dot" />Project</span>
-            <span><i className="legend-dot selected" />Selected</span>
-          </div>
+          {isClientView && (
+            <div className="map-mini-legend" aria-hidden="true">
+              <span><i className="legend-dot" />Project</span>
+              <span><i className="legend-dot selected" />Selected</span>
+            </div>
+          )}
 
           {expandedTaxPlatImage && (
             <div
