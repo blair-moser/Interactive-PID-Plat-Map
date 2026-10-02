@@ -1,8 +1,6 @@
 :root {
   color: #1f2937;
-  background:
-    radial-gradient(circle at top left, rgb(226 232 240 / 0.65), transparent 34rem),
-    linear-gradient(135deg, #f8fafc 0%, #eef2f7 48%, #f7f3ea 100%);
+  background: #e9eef0;
   --surface: #ffffff;
   --surface-soft: #f8fafc;
   --surface-tint: #f4f7fb;
@@ -39,35 +37,33 @@ button {
 }
 
 .app-shell {
+  --map-height: clamp(440px, calc(100vh - 300px), 680px);
+  --map-width: calc(var(--map-height) * 0.99);
   min-height: 100vh;
-  padding: 24px;
+  padding: clamp(12px, 2vw, 24px);
 }
 
 .client-shell {
-  overflow: hidden;
-  padding: 0;
+  overflow: visible;
 }
 
-.hero {
+.page-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  margin: 0 auto 20px;
-  max-width: 1440px;
+  gap: 18px;
+  width: min(100%, calc(280px + var(--map-width) + 16px));
+  margin: 0 auto 18px;
 }
 
-.hero h1 {
+.page-header h1 {
   margin: 0;
-  font-size: clamp(1.6rem, 3vw, 2.8rem);
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
   letter-spacing: -0.04em;
 }
 
-.hero p {
-  max-width: 780px;
-  margin: 8px 0 0;
-  color: var(--text-muted);
-  line-height: 1.55;
+.client-page-header {
+  justify-content: flex-start;
 }
 
 .eyebrow {
@@ -159,207 +155,28 @@ button {
 }
 
 .layout {
-  --map-height: clamp(520px, calc(100vh - 215px), 820px);
-  --map-width: calc(var(--map-height) * 0.9525);
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, var(--map-width)) minmax(280px, 360px);
-  gap: 18px;
-  align-items: start;
+  grid-template-columns: minmax(210px, 280px) minmax(0, var(--map-width));
+  grid-template-rows: auto auto;
+  gap: 16px;
+  align-items: stretch;
   justify-content: center;
-  width: fit-content;
-  max-width: 1680px;
+  width: min(100%, calc(280px + var(--map-width) + 16px));
+  max-width: 1440px;
   margin: 0 auto;
 }
 
 .client-layout {
-  --map-width: auto;
-  --client-map-width: calc(100vh * 0.9525);
-  --client-side-panel-width: min(390px, max(250px, calc((100vw - var(--client-map-width)) / 2 - 30px)));
-  grid-template-columns: minmax(0, 1fr);
-  width: 100vw;
-  justify-content: center;
-  place-items: center;
-  max-width: none;
-  margin: 0;
 }
 
 .client-layout .map-card {
-  grid-column: 1;
-  width: var(--client-map-width);
-  height: 100vh;
-  max-height: none;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  background:
-    radial-gradient(circle at 20% 18%, rgb(255 255 255 / 0.5), transparent 24rem),
-    linear-gradient(135deg, #cfd8e3 0%, #e8edf3 55%, #d9e1ec 100%);
-  box-shadow: none;
-}
-
-.client-layout .map-viewport {
-  --map-height: 100vh;
-  width: 100%;
-  height: 100vh;
-  overflow: auto;
-  background: transparent;
-  scrollbar-width: none;
-}
-
-.client-layout .map-viewport::-webkit-scrollbar {
-  display: none;
-}
-
-.client-layout .map-frame {
   width: auto;
-  height: calc(100vh * var(--zoom, 1));
-  max-height: none;
-  margin: 0 auto;
-  background:
-    radial-gradient(circle at 20% 18%, rgb(255 255 255 / 0.5), transparent 24rem),
-    linear-gradient(135deg, #cfd8e3 0%, #e8edf3 55%, #d9e1ec 100%);
-  box-shadow: none;
-}
-
-.client-layout .map-frame::after {
-  content: none;
-}
-
-.client-map-guide {
-  position: fixed;
-  top: 18px;
-  left: 18px;
-  z-index: 16;
-  display: grid;
-  gap: 14px;
-  width: var(--client-side-panel-width);
-  max-height: calc(100vh - 36px);
-  overflow: auto;
-  border: 1px solid rgb(255 255 255 / 0.72);
-  border-radius: 26px;
-  padding: 16px;
-  background: rgb(255 255 255 / 0.86);
-  box-shadow: 0 24px 70px rgb(15 23 42 / 0.22);
-  backdrop-filter: blur(18px);
-  scrollbar-width: none;
-}
-
-.client-map-guide::-webkit-scrollbar {
-  display: none;
-}
-
-.client-guide-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.client-guide-header p {
-  margin: 0 0 4px;
-  color: var(--accent-dark);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.client-guide-header h1 {
-  margin: 0;
-  color: var(--text-main);
-  font-size: clamp(1.18rem, 2vw, 1.55rem);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-}
-
-.client-guide-header span {
-  flex: 0 0 auto;
-  border: 1px solid rgb(59 110 168 / 0.25);
-  border-radius: 999px;
-  padding: 6px 9px;
-  background: rgb(59 110 168 / 0.1);
-  color: var(--accent-dark);
-  font-size: 0.76rem;
-  font-weight: 900;
-}
-
-.client-guide-copy {
-  margin: -4px 0 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.client-project-list {
-  display: grid;
-  gap: 8px;
-}
-
-.client-project-button {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  border: 1px solid rgb(217 226 236 / 0.9);
-  border-radius: 16px;
-  padding: 10px;
-  background: rgb(255 255 255 / 0.72);
-  color: var(--text-main);
-  text-align: left;
-  transition:
-    transform 140ms ease,
-    border-color 140ms ease,
-    background 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.client-project-button:hover,
-.client-project-button:focus-visible,
-.client-project-button.is-selected {
-  transform: translateY(-1px);
-  border-color: rgb(59 110 168 / 0.45);
-  background: white;
-  box-shadow: 0 12px 28px rgb(15 23 42 / 0.12);
-}
-
-.client-project-marker {
-  width: 13px;
-  height: 13px;
-  border-radius: 999px;
-  background: var(--status-color);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--status-color) 18%, transparent);
-}
-
-.client-project-text {
-  min-width: 0;
-}
-
-.client-project-text strong,
-.client-project-text small {
-  display: block;
-}
-
-.client-project-text strong {
-  overflow: hidden;
-  font-size: 0.9rem;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.client-project-text small {
-  margin-top: 3px;
-  color: var(--text-muted);
-  font-size: 0.76rem;
 }
 
 .sidebar {
   display: grid;
-  gap: 14px;
+  min-width: 0;
   grid-row: 1;
-  position: sticky;
-  top: 18px;
 }
 
 .dots-sidebar {
@@ -385,7 +202,50 @@ button {
 }
 
 .editor-sidebar {
-  grid-column: 3;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.client-details-panel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.client-inline-detail,
+.empty-client-detail {
+  border: 1px solid rgb(255 255 255 / 0.72);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.08);
+}
+
+.empty-client-detail {
+  min-height: 140px;
+  padding: 24px;
+}
+
+.empty-client-detail h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.empty-client-detail p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.client-inline-detail .detail-header {
+  padding: 18px 20px 10px;
+}
+
+.client-inline-detail .detail-header h2 {
+  font-size: 1.3rem;
+}
+
+.client-inline-detail .detail-grid {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
 }
 
 .panel {
@@ -459,6 +319,62 @@ button {
   box-shadow:
     inset 4px 0 0 var(--status-color),
     0 10px 22px rgb(15 23 42 / 0.1);
+}
+
+.client-project-list {
+  gap: 8px;
+}
+
+.client-project-button {
+  min-height: 54px;
+  border-radius: 16px;
+  padding: 9px 10px;
+  background: #fff;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.client-project-button:hover,
+.client-project-button:focus-visible,
+.client-project-button.is-selected {
+  border-color: color-mix(in srgb, var(--status-color) 55%, white);
+  background: color-mix(in srgb, var(--status-color) 7%, white);
+  box-shadow: 0 8px 20px rgb(15 23 42 / 0.08);
+}
+
+.client-project-marker {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--status-color);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.client-project-text {
+  min-width: 0;
+}
+
+.client-project-text strong,
+.client-project-text small {
+  display: block;
+}
+
+.client-project-text strong {
+  overflow: hidden;
+  font-size: 0.88rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-project-text small {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.3;
 }
 
 .editor-toggle {
@@ -782,8 +698,9 @@ button {
   grid-row: 1;
   position: relative;
   overflow: hidden;
+  width: auto;
   height: var(--map-height);
-  max-height: calc(100vh - 150px);
+  max-height: none;
   border: 1px solid var(--border-soft);
   border-radius: 24px;
   background: #d7dee8;
@@ -803,6 +720,15 @@ button {
   top: 18px;
   right: 18px;
   z-index: 26;
+}
+
+.client-layout .map-viewport {
+  height: var(--map-height);
+}
+
+.client-layout .map-frame {
+  height: auto;
+  max-height: none;
 }
 
 .map-zoom-buttons button {
@@ -1016,43 +942,6 @@ button {
   border-radius: 20px;
   background: rgb(15 23 42 / 0.36);
   backdrop-filter: blur(5px);
-}
-
-.client-layout .detail-overlay {
-  position: fixed;
-  inset: 18px 18px 18px auto;
-  width: var(--client-side-panel-width);
-  z-index: 24;
-  place-items: stretch;
-  border-radius: 26px;
-  background: transparent;
-  backdrop-filter: none;
-}
-
-.client-layout .detail-card {
-  border: 1px solid rgb(255 255 255 / 0.72);
-  border-radius: 26px;
-  background: rgb(255 255 255 / 0.94);
-  box-shadow: 0 26px 80px rgb(15 23 42 / 0.24);
-  backdrop-filter: blur(18px);
-  scrollbar-width: none;
-}
-
-.client-layout .detail-card::-webkit-scrollbar {
-  display: none;
-}
-
-.client-layout .detail-header {
-  padding: 18px 18px 12px;
-}
-
-.client-layout .detail-header h2 {
-  font-size: 1.35rem;
-  letter-spacing: -0.03em;
-}
-
-.client-layout .detail-grid {
-  grid-template-columns: 1fr;
 }
 
 .client-layout .project-detail-grid {
@@ -1481,75 +1370,62 @@ button {
 }
 
 @media (max-width: 960px) {
-  .app-shell {
-    padding: 16px;
-  }
-
-  .hero,
+  .page-header,
   .layout {
     grid-template-columns: 1fr;
   }
 
-  .hero {
-    display: grid;
+  .app-shell {
+    --map-height: clamp(420px, 62vh, 620px);
+    --map-width: 100%;
   }
 
-  .actions {
-    justify-content: flex-start;
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .editor-page-header .hero-actions {
+    justify-items: start;
   }
 
   .sidebar {
     grid-column: auto;
-    position: static;
+    grid-row: auto;
   }
 
   .dots-sidebar {
-    grid-row: 2;
+    grid-row: 1;
   }
 
   .editor-sidebar {
-    grid-row: 3;
+    grid-row: auto;
+  }
+
+  .client-details-panel {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .map-card {
     grid-column: auto;
-    grid-row: 1;
-    max-height: none;
+    grid-row: 2;
   }
 
-  .client-layout .map-card {
-    width: 100vw;
-    height: 100vh;
+  .layout,
+  .client-layout {
+    width: 100%;
   }
 
   .map-viewport {
-    --map-height: clamp(420px, 72vh, 720px);
     height: var(--map-height);
   }
 
-  .client-layout .map-viewport {
-    --map-height: 100vh;
-    height: 100vh;
-  }
-
-  .client-map-guide {
-    position: fixed;
-    top: auto;
-    right: 10px;
-    bottom: 10px;
-    left: 10px;
-    width: auto;
-    max-height: 42vh;
-    border-radius: 20px;
-    padding: 12px;
-  }
-
-  .client-guide-copy {
-    font-size: 0.82rem;
-  }
-
-  .client-project-button {
-    padding: 8px;
+  .map-card,
+  .client-layout .map-card {
+    width: 100%;
   }
 
   .map-zoom-buttons {
@@ -1563,12 +1439,11 @@ button {
     inset: 12px;
   }
 
-  .client-layout .detail-overlay {
-    inset: 12px;
-    width: auto;
+  .detail-grid {
+    grid-template-columns: 1fr;
   }
 
-  .detail-grid {
+  .client-inline-detail .detail-grid {
     grid-template-columns: 1fr;
   }
 

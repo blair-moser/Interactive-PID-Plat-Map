@@ -398,15 +398,9 @@ function App() {
 
   return (
     <main className={`app-shell ${isClientView ? 'client-shell' : ''}`}>
-      {!isClientView && (
-        <section className="hero">
-          <div>
-            <h1>Interactive PID Project Plat Map</h1>
-            <p>
-              Add one point per project, then list each related tax ID, account overview link, and
-              project plat map inside the project.
-            </p>
-          </div>
+      <section className={`page-header ${isClientView ? 'client-page-header' : 'editor-page-header'}`}>
+        <h1>{isClientView ? 'Interactive PID Project Plat Map' : 'Interactive PID Project Plat Map Editor'}</h1>
+        {!isClientView && (
           <div className="hero-actions">
             <a className="client-view-link" href={import.meta.env.BASE_URL}>
               Open client view
@@ -416,76 +410,42 @@ function App() {
             </button>
             <p className="save-message">{saveMessage}</p>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       <section className={`layout ${isClientView ? 'client-layout' : ''}`}>
-        {!isClientView && (
-          <aside className="sidebar dots-sidebar">
-            <div className="panel">
-              <h2>Projects</h2>
-              <div className="legend">
-                {sortedProjects.map((project) => (
-                  <button
-                    key={project.id}
-                    type="button"
-                    className={`legend-project ${selectedProjectId === project.id ? 'is-selected' : ''}`}
-                    onClick={() => setSelectedProjectId(project.id)}
-                  >
-                    <span
-                      className="swatch"
-                      style={{ '--status-color': project.color } as React.CSSProperties}
-                    />
-                    <span>
-                      {project.projectName || 'Unnamed project'}
-                      <small>{project.taxIds.length} tax IDs · {countProjectPlatMaps(project)} plats</small>
+        <aside className={`sidebar dots-sidebar ${isClientView ? 'client-projects-sidebar' : ''}`}>
+          <div className="panel">
+            <h2>{isClientView ? 'Properties' : 'Projects'}</h2>
+            <div className={`legend ${isClientView ? 'client-project-list' : ''}`} aria-label="Project list">
+              {sortedProjects.map((project, index) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  className={`legend-project ${isClientView ? 'client-project-button' : ''} ${selectedProjectId === project.id ? 'is-selected' : ''}`}
+                  onClick={() => {
+                    setSelectedProjectId(project.id);
+                    if (isClientView) setActiveProjectId(project.id);
+                  }}
+                >
+                  {isClientView ? (
+                    <span className="client-project-marker" style={{ '--status-color': project.color } as React.CSSProperties}>
+                      {String(index + 1).padStart(2, '0')}
                     </span>
-                  </button>
-                ))}
-              </div>
+                  ) : (
+                    <span className="swatch" style={{ '--status-color': project.color } as React.CSSProperties} />
+                  )}
+                  <span className={isClientView ? 'client-project-text' : ''}>
+                    <strong>{project.projectName || 'Unnamed project'}</strong>
+                    <small>{isClientView ? (getPublicDetails(project) || `${project.taxIds.length} tax IDs`) : `${project.taxIds.length} tax IDs · ${countProjectPlatMaps(project)} plats`}</small>
+                  </span>
+                </button>
+              ))}
             </div>
-          </aside>
-        )}
+          </div>
+        </aside>
 
         <section className="map-card" aria-label="Interactive plat map">
-          {isClientView && (
-            <div className="client-map-guide" aria-label="Project map guide">
-              <div className="client-guide-header">
-                <div>
-                  <p>Interactive project map</p>
-                  <h1>PID No. 1 Project Areas</h1>
-                </div>
-                <span>{projects.length} projects</span>
-              </div>
-              <p className="client-guide-copy">
-                Select a project below or click a dot on the map. Each project can contain multiple
-                tax IDs and plat maps.
-              </p>
-              <div className="client-project-list" aria-label="Project list">
-                {sortedProjects.map((project) => (
-                  <button
-                    key={project.id}
-                    type="button"
-                    className={`client-project-button ${selectedProjectId === project.id ? 'is-selected' : ''}`}
-                    onClick={() => {
-                      setSelectedProjectId(project.id);
-                      setActiveProjectId(project.id);
-                    }}
-                  >
-                    <span
-                      className="client-project-marker"
-                      style={{ '--status-color': project.color } as React.CSSProperties}
-                    />
-                    <span className="client-project-text">
-                      <strong>{project.projectName || 'Unnamed project'}</strong>
-                      <small>{project.taxIds.length} tax IDs · {countProjectPlatMaps(project)} plat maps</small>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="map-zoom-buttons" aria-label="Map zoom controls">
             <button
               type="button"
@@ -555,20 +515,49 @@ function App() {
             </div>
           </section>
 
-          {activeProject && (
+          {expandedTaxPlatImage && (
             <div
-              className="detail-overlay"
+              className="image-viewer-overlay"
               role="dialog"
               aria-modal="true"
-              aria-label={`${activeProject.projectName} details`}
+              aria-label={`${expandedTaxPlatImage.title || 'Plat map'} preview`}
+              onClick={() => setExpandedTaxPlatImage(null)}
             >
-              <div className="detail-card">
+              <div className="image-viewer-card" onClick={(event) => event.stopPropagation()}>
+                <div className="image-viewer-header">
+                  <strong>{expandedTaxPlatImage.title || 'Plat map'}</strong>
+                  <button type="button" onClick={() => setExpandedTaxPlatImage(null)} aria-label="Close expanded plat map">
+                    <X size={18} />
+                  </button>
+                </div>
+                {isImagePlatMap(expandedTaxPlatImage) ? (
+                  <img
+                    src={resolveAssetPath(expandedTaxPlatImage.file)}
+                    alt={`${expandedTaxPlatImage.title || 'Plat map'} preview`}
+                    decoding="async"
+                  />
+                ) : (
+                  <iframe
+                    className="image-viewer-pdf"
+                    src={resolveAssetPath(expandedTaxPlatImage.file)}
+                    title={`${expandedTaxPlatImage.title || 'Plat map'} PDF`}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {isClientView ? (
+          <section className="client-details-panel" aria-label="Project details">
+            {activeProject ? (
+              <div className="detail-card client-inline-detail">
                 <div className="detail-header">
                   <div>
                     <h2>{activeProject.projectName || 'Unnamed project'}</h2>
                     <p>{activeProject.taxIds.length} tax IDs · {countProjectPlatMaps(activeProject)} plat maps</p>
                   </div>
-                  <button type="button" onClick={() => setActiveProjectId(null)} aria-label="Close details">
+                  <button type="button" onClick={() => setActiveProjectId(null)} aria-label="Clear project selection">
                     <X size={18} />
                   </button>
                 </div>
@@ -661,41 +650,14 @@ function App() {
                   </section>
                 </div>
               </div>
-            </div>
-          )}
-
-          {expandedTaxPlatImage && (
-            <div
-              className="image-viewer-overlay"
-              role="dialog"
-              aria-modal="true"
-              aria-label={`${expandedTaxPlatImage.title || 'Plat map'} preview`}
-              onClick={() => setExpandedTaxPlatImage(null)}
-            >
-              <div className="image-viewer-card" onClick={(event) => event.stopPropagation()}>
-                <div className="image-viewer-header">
-                  <strong>{expandedTaxPlatImage.title || 'Plat map'}</strong>
-                  <button type="button" onClick={() => setExpandedTaxPlatImage(null)} aria-label="Close expanded plat map">
-                    <X size={18} />
-                  </button>
-                </div>
-                {isImagePlatMap(expandedTaxPlatImage) ? (
-                  <img
-                    src={resolveAssetPath(expandedTaxPlatImage.file)}
-                    alt={`${expandedTaxPlatImage.title || 'Plat map'} preview`}
-                    decoding="async"
-                  />
-                ) : (
-                  <iframe
-                    className="image-viewer-pdf"
-                    src={resolveAssetPath(expandedTaxPlatImage.file)}
-                    title={`${expandedTaxPlatImage.title || 'Plat map'} PDF`}
-                  />
-                )}
+            ) : (
+              <div className="detail-card empty-client-detail">
+                <h2>No project selected</h2>
+                <p>Select a project from the map or list to see its details.</p>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+        ) : null}
 
         {!isClientView && (
           <aside className="sidebar editor-sidebar">
