@@ -5,3 +5,4 @@ dist/
 *.local
 local-backups/
 public/projects.backup-*.json
+sites-deploy-archive.tar
