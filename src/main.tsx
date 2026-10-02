@@ -66,19 +66,6 @@ const LIVE_API_URL = `${SITE_ORIGIN}/api/projects`;
 const IS_SITE_EDITOR = window.location.origin === SITE_ORIGIN;
 const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
-const starterProjects: ProjectPoint[] = [
-  {
-    id: 'project-1',
-    projectName: 'Western Mortgage & Realty Co.',
-    shortDetails: '',
-    x: 50,
-    y: 50,
-    color: '#000000',
-    taxIds: [],
-    projectPlatMap: createEmptyProjectPdf(),
-  },
-];
-
 function App() {
   const mapViewportRef = useRef<HTMLElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -87,7 +74,8 @@ function App() {
   const liveVersion = useRef(0);
   const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
   const lastPublished = useRef('');
-  const [projects, setProjects] = useState<ProjectPoint[]>(starterProjects);
+  const [projects, setProjects] = useState<ProjectPoint[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [canSaveProjects, setCanSaveProjects] = useState(false);
   const [browserDraft, setBrowserDraft] = useState<ProjectPoint[] | null>(null);
   const [liveLoadError, setLiveLoadError] = useState(false);
@@ -99,7 +87,7 @@ function App() {
   );
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('Loaded');
+  const [saveMessage, setSaveMessage] = useState('Loading projects…');
   const [expandedTaxPlatImage, setExpandedTaxPlatImage] = useState<ProjectPlatMap | null>(null);
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
@@ -154,6 +142,7 @@ function App() {
   useEffect(() => {
     let cancelled = false;
     setCanSaveProjects(false);
+    setIsLoadingProjects(true);
     async function load() {
       const savedDraft = !isClientView ? loadBrowserProjects() : null;
       if (!IS_LOCAL_PREVIEW) {
@@ -164,6 +153,7 @@ function App() {
           lastPublished.current = JSON.stringify(prepareProjectsForSave(live.projects));
           hasUserEdited.current = false;
           setProjects(live.projects);
+          setIsLoadingProjects(false);
           setLiveLoadError(false);
           setSaveMessage(`Loaded ${live.projects.length} live projects`);
           if (savedDraft && JSON.stringify(prepareProjectsForSave(savedDraft)) !== lastPublished.current) {
@@ -180,6 +170,7 @@ function App() {
       const fallback = savedDraft || await loadPublishedProjects();
       if (cancelled) return;
       if (fallback) setProjects(fallback);
+      setIsLoadingProjects(false);
       if (IS_LOCAL_PREVIEW) {
         setSaveMessage('Local preview: edits stay on this device.');
       }
@@ -494,7 +485,7 @@ function App() {
             <a className="client-view-link" href={import.meta.env.BASE_URL} onClick={openClientView}>
               Open client view
             </a>
-            <button type="button" className="client-view-link deploy-copy-button" onClick={copyDeployJson}>
+            <button type="button" className="client-view-link deploy-copy-button" onClick={copyDeployJson} disabled={isLoadingProjects}>
               Copy deploy JSON
             </button>
             <p className="save-message">{saveMessage}</p>
@@ -528,6 +519,7 @@ function App() {
           <div className="panel">
             <h2>{isClientView ? 'Properties' : 'Projects'}</h2>
             <div className="legend client-project-list" aria-label="Project list">
+              {isLoadingProjects && <p role="status">Loading projects…</p>}
               {sortedProjects.map((project) => (
                 <button
                   key={project.id}
@@ -914,7 +906,7 @@ function App() {
 
                 <div className="shape-editor">
                   <div className="shape-actions">
-                    <button type="button" onClick={addProject}>
+                    <button type="button" onClick={addProject} disabled={isLoadingProjects}>
                       <Plus size={15} />
                       Add project
                     </button>
@@ -934,7 +926,7 @@ function App() {
               <div className="panel empty-selection-panel">
                 <h2>No project selected</h2>
                 <p>Select a project from the map or the Projects list to edit its details.</p>
-                <button type="button" onClick={addProject}>
+                <button type="button" onClick={addProject} disabled={isLoadingProjects}>
                   <Plus size={15} />
                   Add project
                 </button>
