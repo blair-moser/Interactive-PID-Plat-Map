@@ -417,25 +417,20 @@ function App() {
         <aside className={`sidebar dots-sidebar ${isClientView ? 'client-projects-sidebar' : ''}`}>
           <div className="panel">
             <h2>{isClientView ? 'Properties' : 'Projects'}</h2>
-            <div className={`legend ${isClientView ? 'client-project-list' : ''}`} aria-label="Project list">
+            <div className="legend client-project-list" aria-label="Project list">
               {sortedProjects.map((project, index) => (
                 <button
                   key={project.id}
                   type="button"
-                  className={`legend-project ${isClientView ? 'client-project-button' : ''} ${selectedProjectId === project.id ? 'is-selected' : ''}`}
+                  className={`legend-project client-project-button ${selectedProjectId === project.id ? 'is-selected' : ''}`}
+                  style={{ '--status-color': project.color } as React.CSSProperties}
                   onClick={() => {
                     setSelectedProjectId(project.id);
                     if (isClientView) setActiveProjectId(project.id);
                   }}
                 >
-                  {isClientView ? (
-                    <span className="client-project-marker" style={{ '--status-color': project.color } as React.CSSProperties}>
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                  ) : (
-                    <span className="swatch" style={{ '--status-color': project.color } as React.CSSProperties} />
-                  )}
-                  <span className={isClientView ? 'client-project-text' : ''}>
+                  <span className="client-project-marker">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="client-project-text">
                     <strong>{project.projectName || 'Unnamed project'}</strong>
                     <small>{isClientView ? (getPublicDetails(project) || `${project.taxIds.length} tax IDs`) : `${project.taxIds.length} tax IDs · ${countProjectPlatMaps(project)} plats`}</small>
                   </span>
@@ -464,7 +459,8 @@ function App() {
               <ZoomOut size={17} />
             </button>
             <button type="button" onClick={resetMapView} aria-label="Reset zoom">
-              {Math.round(zoom * 100)}%
+              <span>{Math.round(zoom * 100)}%</span>
+              <small>Reset</small>
             </button>
           </div>
 
@@ -514,6 +510,12 @@ function App() {
               </div>
             </div>
           </section>
+
+          <div className="map-hint">{isClientView ? 'Click a dot or project to inspect it' : 'Drag a dot to position it'}</div>
+          <div className="map-mini-legend" aria-hidden="true">
+            <span><i className="legend-dot" />Project</span>
+            <span><i className="legend-dot selected" />Selected</span>
+          </div>
 
           {expandedTaxPlatImage && (
             <div
