@@ -208,7 +208,7 @@ button {
 
 .layout {
   display: grid;
-  grid-template-columns: clamp(250px, 18vw, 350px) minmax(0, 1fr) clamp(270px, 18vw, 350px);
+  grid-template-columns: clamp(250px, 18vw, 350px) minmax(0, 1fr) clamp(250px, 18vw, 350px);
   grid-template-rows: minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
