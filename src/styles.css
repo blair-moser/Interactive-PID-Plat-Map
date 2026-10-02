@@ -37,14 +37,14 @@ button {
 }
 
 .app-shell {
-  --map-height: clamp(500px, calc(100vh - 250px), 860px);
+  --map-height: max(500px, calc(100vh - 116px));
   --map-width: calc(var(--map-height) * 3909 / 4104);
   min-height: 100vh;
   padding: clamp(12px, 2vw, 24px);
 }
 
 .app-shell:not(.client-shell) {
-  --map-height: clamp(500px, calc(100vh - 280px), 860px);
+  --map-height: max(500px, calc(100vh - 128px));
 }
 
 .client-shell {
@@ -137,6 +137,47 @@ button {
   width: 100%;
   margin: 0;
   text-align: right;
+}
+
+.live-map-warning,
+.draft-recovery {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 14px;
+  border: 1px solid #bd6f6f;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #fff6f4;
+  color: #6c2727;
+  font-size: 0.86rem;
+}
+
+.draft-recovery {
+  border-color: #b7c5d6;
+  background: #f4f8fc;
+  color: var(--text-main);
+}
+
+.draft-recovery span {
+  flex: 1 1 260px;
+}
+
+.draft-recovery button {
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: white;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.draft-recovery button:first-of-type {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
 }
 
 .backup-actions {

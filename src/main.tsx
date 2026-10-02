@@ -61,6 +61,10 @@ const PUBLISHED_IMPORT_PROJECT_NAMES = [
 ];
 const PROJECTS_FILE_PATH = `${import.meta.env.BASE_URL}projects.json`;
 const DEFAULT_MAP_IMAGE = `${import.meta.env.BASE_URL}pid-no-1-map.png`;
+const SITE_ORIGIN = 'https://interactive-pid-plat-map.bmoser3.chatgpt.site';
+const LIVE_API_URL = `${SITE_ORIGIN}/api/projects`;
+const IS_SITE_EDITOR = window.location.origin === SITE_ORIGIN;
+const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
 const starterProjects: ProjectPoint[] = [
   {
@@ -80,8 +84,14 @@ function App() {
   const mapRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ id: string; moved: boolean } | null>(null);
   const hasUserEdited = useRef(false);
+  const liveVersion = useRef(0);
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const lastPublished = useRef('');
   const [projects, setProjects] = useState<ProjectPoint[]>(starterProjects);
   const [canSaveProjects, setCanSaveProjects] = useState(false);
+  const [browserDraft, setBrowserDraft] = useState<ProjectPoint[] | null>(null);
+  const [liveLoadError, setLiveLoadError] = useState(false);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [pageMode, setPageMode] = useState<'editor' | 'client'>(() =>
@@ -113,13 +123,21 @@ function App() {
 
   useEffect(() => {
     if (!canSaveProjects || isClientView || !hasUserEdited.current) return;
-    saveProjects(projects);
-    setSaveMessage(
-      `Saved ${projects.length} projects at ${new Date().toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-      })}`,
-    );
+    setBrowserDraft(null);
+    try {
+      saveProjects(projects);
+    } catch {
+      setSaveMessage('Could not make a browser backup. Please check storage space.');
+      return;
+    }
+    if (JSON.stringify(prepareProjectsForSave(projects)) === lastPublished.current) return;
+    if (!IS_SITE_EDITOR) {
+      setSaveMessage('Saved on this device only. Open the live editor to publish.');
+      return;
+    }
+    setSaveMessage('Saving to the live map…');
+    const timer = window.setTimeout(() => { void publishProjects(projects); }, 700);
+    return () => window.clearTimeout(timer);
   }, [canSaveProjects, projects, isClientView]);
 
   useEffect(() => {
@@ -135,58 +153,114 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
-
-    if (!isClientView) {
-      const browserProjects = loadBrowserProjects();
-      if (browserProjects) {
-        loadPublishedProjects()
-          .then((publishedProjects) => {
-            if (cancelled) return;
-            const mergedProjects = normalizeTaxIdPlatImageImports(
-              normalizeProjectPlatMapImports(
-                splitCombinedWesternMortgageProjects(
-                  mergePublishedImports(browserProjects, publishedProjects),
-                  publishedProjects,
-                ),
-                publishedProjects,
-              ),
-              publishedProjects,
-            );
-            setProjects(mergedProjects);
-            setSaveMessage(`Loaded ${mergedProjects.length} saved draft projects`);
-          })
-          .catch(() => {
-            if (cancelled) return;
-            setProjects(browserProjects);
-            setSaveMessage(`Loaded ${browserProjects.length} saved draft projects`);
-          })
-          .finally(() => {
-            if (!cancelled) setCanSaveProjects(!isClientView);
-          });
-        return () => {
-          cancelled = true;
-        };
-      }
-    }
-
     setCanSaveProjects(false);
-    loadPublishedProjects()
-      .then((publishedProjects) => {
-        if (cancelled || !publishedProjects) return;
-        setProjects(publishedProjects);
-        setSaveMessage(`Loaded ${publishedProjects.length} projects`);
-      })
-      .catch(() => {
-        if (!cancelled) setSaveMessage('Loaded starter project');
-      })
-      .finally(() => {
-        if (!cancelled && !isClientView) setCanSaveProjects(true);
-      });
+    async function load() {
+      const savedDraft = !isClientView ? loadBrowserProjects() : null;
+      if (!IS_LOCAL_PREVIEW) {
+        try {
+          const live = await loadLiveProjects();
+          if (cancelled) return;
+          liveVersion.current = live.version;
+          lastPublished.current = JSON.stringify(prepareProjectsForSave(live.projects));
+          hasUserEdited.current = false;
+          setProjects(live.projects);
+          setLiveLoadError(false);
+          setSaveMessage(`Loaded ${live.projects.length} live projects`);
+          if (savedDraft && JSON.stringify(prepareProjectsForSave(savedDraft)) !== lastPublished.current) {
+            setBrowserDraft(savedDraft);
+          }
+          if (!isClientView) setCanSaveProjects(true);
+          return;
+        } catch {
+          if (cancelled) return;
+          setLiveLoadError(true);
+          setSaveMessage('Live map unavailable. Your browser draft is safe; edits cannot publish yet.');
+        }
+      }
+      const fallback = savedDraft || await loadPublishedProjects();
+      if (cancelled) return;
+      if (fallback) setProjects(fallback);
+      if (IS_LOCAL_PREVIEW) {
+        setSaveMessage('Local preview: edits stay on this device.');
+      }
+      if (!isClientView) setCanSaveProjects(true);
+    }
+    void load();
 
     return () => {
       cancelled = true;
     };
   }, [isClientView]);
+
+  useEffect(() => {
+    if (!isClientView || IS_LOCAL_PREVIEW) return;
+    let cancelled = false;
+    async function refresh() {
+      if (document.hidden) return;
+      try {
+        const live = await loadLiveProjects();
+        if (cancelled) return;
+        if (live.version !== liveVersion.current) {
+          liveVersion.current = live.version;
+          setProjects(live.projects);
+        }
+        setLiveLoadError(false);
+      } catch {
+        if (!cancelled) setLiveLoadError(true);
+      }
+    }
+    const interval = window.setInterval(() => { void refresh(); }, 5000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [isClientView]);
+
+  function publishProjects(snapshot: ProjectPoint[]): Promise<boolean> {
+    const prepared = prepareProjectsForSave(snapshot);
+    const serialized = JSON.stringify(prepared);
+    if (serialized === lastPublished.current) return Promise.resolve(true);
+    const task = saveQueue.current.then(async () => {
+      try {
+        const response = await fetch(LIVE_API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ baseVersion: liveVersion.current, projects: prepared }),
+        });
+        const result = await response.json();
+        if (response.status === 401) setNeedsSignIn(true);
+        if (!response.ok) throw new Error(result.error || 'Could not publish map edits.');
+        liveVersion.current = result.version;
+        lastPublished.current = serialized;
+        hasUserEdited.current = false;
+        setLiveLoadError(false);
+        setNeedsSignIn(false);
+        setSaveMessage(`Live for clients as of ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+        return true;
+      } catch (error) {
+        setSaveMessage(`${error instanceof Error ? error.message : 'Could not publish map edits.'} Your browser draft is safe. Retry when ready.`);
+        return false;
+      }
+    });
+    saveQueue.current = task.then(() => undefined);
+    return task;
+  }
+
+  async function openClientView(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (!IS_SITE_EDITOR || !hasUserEdited.current) return;
+    event.preventDefault();
+    await saveQueue.current;
+    if (await publishProjects(projects)) window.location.href = import.meta.env.BASE_URL;
+  }
+
+  function restoreBrowserDraft() {
+    if (!browserDraft) return;
+    hasUserEdited.current = true;
+    setProjects(browserDraft);
+    setBrowserDraft(null);
+  }
 
   useEffect(() => {
     function handleHashChange() {
@@ -402,16 +476,40 @@ function App() {
         <h1>{isClientView ? 'Interactive PID Project Plat Map' : 'Interactive PID Project Plat Map Editor'}</h1>
         {!isClientView && (
           <div className="hero-actions">
-            <a className="client-view-link" href={import.meta.env.BASE_URL}>
+            {!IS_SITE_EDITOR && !IS_LOCAL_PREVIEW && (
+              <a className="client-view-link" href={`${SITE_ORIGIN}/#editor`}>Open live editor</a>
+            )}
+            <a className="client-view-link" href={import.meta.env.BASE_URL} onClick={openClientView}>
               Open client view
             </a>
             <button type="button" className="client-view-link deploy-copy-button" onClick={copyDeployJson}>
               Copy deploy JSON
             </button>
             <p className="save-message">{saveMessage}</p>
+            {needsSignIn && IS_SITE_EDITOR && (
+              <a className="client-view-link" href="/signin-with-chatgpt?return_to=%2F%23editor" target="_top">
+                Sign in to publish
+              </a>
+            )}
           </div>
         )}
       </section>
+
+      {liveLoadError && (
+        <div className="live-map-warning" role="alert">Live updates are temporarily unavailable. This view may be out of date.</div>
+      )}
+      {!isClientView && !IS_SITE_EDITOR && !IS_LOCAL_PREVIEW && (
+        <div className="live-map-warning" role="alert">
+          This GitHub editor keeps changes on this device only. Use Open live editor above to publish changes for clients.
+        </div>
+      )}
+      {!isClientView && browserDraft && (
+        <div className="draft-recovery" role="alert">
+          <span>A saved browser draft differs from the live map. It has not replaced the live version.</span>
+          <button type="button" onClick={restoreBrowserDraft}>Use my browser draft</button>
+          <button type="button" onClick={() => setBrowserDraft(null)}>Keep live version</button>
+        </div>
+      )}
 
       <section className={`layout ${isClientView ? 'client-layout' : ''}`}>
         <aside className={`sidebar dots-sidebar ${isClientView ? 'client-projects-sidebar' : ''}`}>
@@ -995,6 +1093,16 @@ async function loadPublishedProjects() {
   if (isProjectList(projects)) return projects;
 
   return null;
+}
+
+async function loadLiveProjects(): Promise<{ projects: ProjectPoint[]; version: number }> {
+  const response = await fetch(LIVE_API_URL, { cache: 'no-store' });
+  if (!response.ok) throw new Error('Could not load live map data.');
+  const result = await response.json();
+  if (!isProjectList(result.projects) || !Number.isInteger(result.version)) {
+    throw new Error('Live map data is invalid.');
+  }
+  return { projects: result.projects, version: result.version };
 }
 
 async function fetchJson(path: string) {
