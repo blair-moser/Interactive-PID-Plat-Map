@@ -528,7 +528,7 @@ function App() {
           <div className="panel">
             <h2>{isClientView ? 'Properties' : 'Projects'}</h2>
             <div className="legend client-project-list" aria-label="Project list">
-              {sortedProjects.map((project, index) => (
+              {sortedProjects.map((project) => (
                 <button
                   key={project.id}
                   type="button"
@@ -539,7 +539,7 @@ function App() {
                     if (isClientView) setActiveProjectId(project.id);
                   }}
                 >
-                  <span className="client-project-marker">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="client-project-marker" aria-hidden="true" />
                   <span className="client-project-text">
                     <strong>{project.projectName || 'Unnamed project'}</strong>
                     <small>{isClientView ? (getPublicDetails(project) || `${project.taxIds.length} tax IDs`) : `${project.taxIds.length} tax IDs · ${countProjectPlatMaps(project)} plats`}</small>
