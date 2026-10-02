@@ -1138,11 +1138,23 @@ button {
 
 .project-plat-preview-link {
   display: block;
+  width: 100%;
   overflow: hidden;
   border: 1px solid var(--border-soft);
   border-radius: 18px;
   background: rgb(248 250 252 / 0.95);
   box-shadow: 0 12px 24px rgb(15 23 42 / 0.08);
+}
+
+.project-plat-preview-button {
+  cursor: zoom-in;
+  padding: 0;
+}
+
+.project-plat-open-button {
+  width: 100%;
+  cursor: zoom-in;
+  justify-content: center;
 }
 
 .project-plat-preview-link:hover {
@@ -1325,6 +1337,13 @@ button {
   min-height: 0;
   padding: 14px;
   object-fit: contain;
+}
+
+.image-viewer-pdf {
+  width: 100%;
+  height: min(78vh, 900px);
+  border: 0;
+  background: white;
 }
 
 .compact-link {

@@ -578,12 +578,11 @@ function App() {
                     <section className="project-plat-section">
                       <h3>Project plat map</h3>
                       {isImagePlatMap(activeProjectPlatMap) ? (
-                        <a
-                          className="project-plat-preview-link"
-                          href={resolveAssetPath(activeProjectPlatMap.file)}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`Open ${activeProjectPlatMap.title || activeProject.projectName} plat map`}
+                        <button
+                          type="button"
+                          className="project-plat-preview-link project-plat-preview-button"
+                          onClick={() => setExpandedTaxPlatImage(activeProjectPlatMap)}
+                          aria-label={`Expand ${activeProjectPlatMap.title || activeProject.projectName} plat map`}
                         >
                           <img
                             className="project-plat-preview"
@@ -592,17 +591,17 @@ function App() {
                             loading="lazy"
                             decoding="async"
                           />
-                        </a>
+                        </button>
                       ) : (
-                        <a
-                          className="account-overview-link secondary-link"
-                          href={resolveAssetPath(activeProjectPlatMap.file)}
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          type="button"
+                          className="account-overview-link secondary-link project-plat-open-button"
+                          onClick={() => setExpandedTaxPlatImage(activeProjectPlatMap)}
+                          aria-label={`Open ${activeProjectPlatMap.title || activeProject.projectName} plat map`}
                         >
                           <FileText size={16} />
-                          Open project plat map
-                        </a>
+                          View project plat map
+                        </button>
                       )}
                     </section>
                   )}
@@ -670,21 +669,29 @@ function App() {
               className="image-viewer-overlay"
               role="dialog"
               aria-modal="true"
-              aria-label={`${expandedTaxPlatImage.title || 'Tax ID'} plat map preview`}
+              aria-label={`${expandedTaxPlatImage.title || 'Plat map'} preview`}
               onClick={() => setExpandedTaxPlatImage(null)}
             >
               <div className="image-viewer-card" onClick={(event) => event.stopPropagation()}>
                 <div className="image-viewer-header">
-                  <strong>{expandedTaxPlatImage.title || 'Tax ID plat map'}</strong>
+                  <strong>{expandedTaxPlatImage.title || 'Plat map'}</strong>
                   <button type="button" onClick={() => setExpandedTaxPlatImage(null)} aria-label="Close expanded plat map">
                     <X size={18} />
                   </button>
                 </div>
-                <img
-                  src={resolveAssetPath(expandedTaxPlatImage.file)}
-                  alt={`${expandedTaxPlatImage.title || 'Tax ID'} plat map`}
-                  decoding="async"
-                />
+                {isImagePlatMap(expandedTaxPlatImage) ? (
+                  <img
+                    src={resolveAssetPath(expandedTaxPlatImage.file)}
+                    alt={`${expandedTaxPlatImage.title || 'Plat map'} preview`}
+                    decoding="async"
+                  />
+                ) : (
+                  <iframe
+                    className="image-viewer-pdf"
+                    src={resolveAssetPath(expandedTaxPlatImage.file)}
+                    title={`${expandedTaxPlatImage.title || 'Plat map'} PDF`}
+                  />
+                )}
               </div>
             </div>
           )}
